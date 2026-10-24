@@ -56,3 +56,11 @@
 @media(max-width:760px){.card-label{font-size:11px}.card-foot{font-size:10px}.day-number{font-size:13px}.day-time{font-size:10px}.donut small{font-size:10px}.legend-row div small,.legend-heading,.calendar-footer,.goal-metrics small{font-size:10px}.connection-banner{font-size:11px}.page-title p{font-size:11px}.page-footer{font-size:10px}.day.outside .day-time{font-size:10px}}
 .page-title p,.card-label,.card-foot{word-break:keep-all}
 @media(max-width:760px){.card-label{min-height:34px}.card-foot{line-height:1.7}}
+
+.topbar-actions{display:flex;align-items:center;gap:14px}.privacy-help{position:relative;flex-shrink:0;z-index:20}
+.privacy-trigger{display:grid;place-items:center;width:32px;height:32px;border:1px solid var(--border);border-radius:50%;background:white;color:var(--accent);font-size:17px;font-weight:700}
+.privacy-trigger:hover,.privacy-trigger[aria-expanded=true]{background:var(--tint);border-color:var(--accent)}
+.privacy-flyout{position:absolute;right:0;top:100%;padding-top:10px;width:min(380px,calc(100vw - 32px));text-align:left}.privacy-flyout[hidden]{display:none}
+.privacy-card{padding:21px;background:white;border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 42px #30233926;max-height:calc(100dvh - 100px);overflow:auto;color:#51475e;line-height:1.85;font-size:12px}
+.privacy-card h2{font-size:16px;line-height:1.6;color:#302c37;margin:0 0 12px}.privacy-card h3{font-size:12px;font-weight:700;color:var(--accent);margin:16px 0 4px}.privacy-card p{margin:0;word-break:keep-all;overflow-wrap:anywhere}.privacy-card .privacy-highlight{padding:11px 12px;background:var(--tint);border-radius:7px;color:var(--accent);font-weight:600}.privacy-card small{display:block;font-size:10px;line-height:1.8;color:#6c6078;margin-top:18px;border-top:1px solid var(--border);padding-top:10px}
+@media(max-width:760px){.topbar-actions{gap:9px}.privacy-card{padding:17px}.privacy-trigger{width:32px;height:32px}}
