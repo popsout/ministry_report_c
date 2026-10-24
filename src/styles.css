@@ -8,3 +8,11 @@
 
 .summary-time{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px}.summary-time>span{white-space:nowrap}
 .preview-link{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;text-decoration:underline;text-underline-offset:3px;color:#76559e;padding:3px 5px;white-space:nowrap}.google-button{display:flex;align-items:center;justify-content:center;gap:13px;background:#fff;border:1px solid #ddd5e5;padding:14px;font-size:13px;font-weight:600;box-shadow:0 2px 5px #30203f06}.google-button:hover{background:#faf8fc}.google-symbol{font-family:Arial,sans-serif;font-size:21px;font-weight:700;color:#4285f4}
+
+/* Keep charts, legends and calendar dots on the selected month's palette. */
+.app{--series-1:#8160b1;--series-2:#c2addc;--series-3:#e2d7ed}
+.theme-normal{--series-1:#626a7a;--series-2:#a1a8b4;--series-3:#d3d7df}
+.theme-regular{--series-1:#327d74;--series-2:#86b9a9;--series-3:#c5e2d8}
+.stats-panel .scope-control button.chosen,.stats-panel .legend-row b,.stats-panel .count-total strong{color:var(--accent)}
+.stats-panel .scope-control{background:var(--tint)}
+.stats-panel .legend-row,.stats-panel .count-total{border-color:var(--border)}
