@@ -28,6 +28,17 @@ test('목표 달성·초과 달성 시 잔여는 0이며 표시 막대는 넘치
  await page.getByRole('combobox',{name:'시간',exact:true}).selectOption('3');await page.getByRole('button',{name:'기록 저장',exact:true}).click();
  const summary=page.getByRole('region',{name:'이번 달 목표 달성 현황'});await expect(summary).toContainText('목표를 달성');await expect(summary).toContainText('0시간');
  await expect(summary.getByRole('progressbar')).toHaveAttribute('aria-valuenow','100');
+ const celebration=page.getByRole('region',{name:'목표 달성 축하'});
+ await expect(celebration).toBeVisible();await expect(celebration).toContainText('15시간');
+ await expect(page.locator('.app')).toHaveClass(/goal-achieved/);
+ const fireworks=celebration.locator('.celebration-fireworks');const before=await fireworks.elementHandle();
+ await celebration.getByRole('button',{name:'축하 폭죽 다시 보기'}).click();
+ expect(await before!.evaluate(el=>el.isConnected)).toBe(false);
+ await page.emulateMedia({reducedMotion:'reduce'});
+ expect(await celebration.locator('.firework i').first().evaluate(el=>getComputedStyle(el).animationName)).toBe('none');
+ page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'30시간',exact:true}).click();
+ await expect(celebration).toHaveCount(0);await expect(page.locator('.app')).not.toHaveClass(/goal-achieved/);
+
 });
 for(const width of [360,768])test(`${width}px에서 목표 선택 박스가 넘치지 않는다`,async({page})=>{
  await page.setViewportSize({width,height:1000});await page.goto('/?preview=1');

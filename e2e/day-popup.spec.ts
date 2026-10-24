@@ -18,3 +18,20 @@ test('인접 월 날짜를 눌러도 올바른 날짜에 기록한다',async({pa
  await page.getByRole('dialog').getByRole('button',{name:'기록 추가',exact:true}).click();
  await expect(page.getByRole('dialog').locator('input[type=date]')).toHaveValue(date);
 });
+
+for(const mobile of [false,true])test(`날짜 창의 바깥 여백으로 닫기 (${mobile?'모바일':'PC'})`,async({browser})=>{
+ const context=await browser.newContext({viewport:mobile?{width:360,height:800}:{width:1280,height:900},hasTouch:mobile});
+ const page=await context.newPage();await page.goto('/?preview=1');
+ const day=page.locator('.day:not(.outside)').first();await day.click();
+ const dialog=page.getByRole('dialog');await expect(dialog).toBeVisible();
+ const box=(await dialog.boundingBox())!;
+ await page.mouse.click(box.x+8,box.y+8);await expect(dialog).toBeVisible();
+ if(mobile)await page.touchscreen.tap(5,5);else await page.mouse.click(5,5);
+ await expect(dialog).not.toBeVisible();await expect(day).toBeFocused();
+ // Dismissing day details must not dismiss a form with unsaved input.
+ await day.click();await dialog.getByRole('button',{name:'기록 추가',exact:true}).click();
+ await dialog.getByRole('textbox',{name:/메모/}).fill('작성 중인 기록');
+ if(mobile)await page.touchscreen.tap(5,5);else await page.mouse.click(5,5);
+ await expect(dialog).toBeVisible();await expect(dialog.getByRole('textbox',{name:/메모/})).toHaveValue('작성 중인 기록');
+ await context.close();
+});
