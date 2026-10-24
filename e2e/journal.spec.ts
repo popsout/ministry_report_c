@@ -1,3 +1,4 @@
+import { openSelectedDay } from './helpers';
 import { test, expect } from '@playwright/test';
 test('월별 신분은 다른 월과 독립적으로 유지된다',async({page})=>{
  await page.goto('/?preview=1');
@@ -20,7 +21,7 @@ test('선택식 기록의 생성, 수정, 삭제와 통계가 동작한다',asyn
  await dialog.getByRole('combobox',{name:'분',exact:true}).selectOption('15');
  await dialog.locator('textarea').fill('브라우저 테스트');
  await dialog.getByRole('button',{name:'기록 저장'}).click();
- await expect(dialog).not.toBeVisible();
+ await expect(dialog).not.toBeVisible();await openSelectedDay(page);
  await expect(page.locator('.summary-card').first()).toContainText('15분');
  await expect(page.locator('.entry-row')).toContainText('편지 봉사');
  await expect(page.locator('.legend-row').nth(1)).toContainText('100.0');
