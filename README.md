@@ -1,5 +1,11 @@
 # 차곡 · 나의 봉사 기록
 
+## 추가 가입 없이 PC에서 열기
+
+저장소 최상위의 `chagok.html`을 GitHub 파일 화면에서 **Download raw file**로 내려받아 Chrome/Edge에서 여세요. 코드 파일 `index.html`이 아니라 완성본 **chagok.html**입니다. 인터넷 배포나 Google/Supabase 설정 없이 화면과 입력 기능을 살펴볼 수 있습니다. 브라우저·파일 위치에 따라 저장 영역이 달라질 수 있으므로 파일 위치를 고정하세요. 이 클라우드에서는 관리자 정책상 file:// 직접 열기가 차단되어, 완성본 HTML은 HTTP로 제공하는 조건에서 검증했습니다.
+
+이 파일은 `npm run build:standalone`으로 자동 갱신되는 생성물입니다. GitHub Pages는 현재 비공개 저장소의 무료 요금제로 사용할 수 없어 자동 실행을 중단하고 수동 실행 설정만 남겨두었습니다. 지금은 외부 호스팅 가입을 진행하지 않습니다.
+
 현재 목표는 **로그인 없이 한 기기에서 쓰는 봉사 기록장**입니다. UI와 실제 사용 흐름을 먼저 완성하고, 여러 기기 동기화와 백업은 후속 단계로 진행합니다. Google/Supabase 설정은 지금 필요하지 않습니다. 기존 온라인 연동 파일은 향후 작업 참고용으로 남겨 두었으며, 현재 앱은 이를 불러오거나 외부 서버에 접속하지 않습니다.
 
 ## 현재 기능
@@ -62,7 +68,7 @@ CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e
 
 ## GitHub Pages 배포
 
-`.github/workflows/pages.yml`은 main 브랜치에 코드를 올리면 테스트·빌드 후 정적 앱을 배포합니다. Vite의 상대 자산 경로를 사용해 저장소 하위 주소에서도 실행됩니다. 배포에 Supabase/Google 키나 환경 변수는 필요하지 않습니다. 개인 기록은 서버나 GitHub에 전송되지 않고 방문한 브라우저에만 저장됩니다.
+`.github/workflows/pages.yml`은 수동 실행 시 테스트·빌드 후 정적 앱을 배포합니다. 현재는 Pages 사용 조건이 맞지 않아 실행을 보류했습니다. Vite의 상대 자산 경로를 사용해 저장소 하위 주소에서도 실행됩니다. 배포에 Supabase/Google 키나 환경 변수는 필요하지 않습니다. 개인 기록은 서버나 GitHub에 전송되지 않고 방문한 브라우저에만 저장됩니다.
 
 저장소 소유자가 최초 1회 GitHub **Settings → Pages → Build and deployment → Source**를 **GitHub Actions**로 설정해야 합니다. Pages 사용 가능 여부는 저장소 공개 여부와 GitHub 요금제에 따라 다릅니다. 배포를 위해 저장소 공개 범위를 자동 변경하지 않습니다.
 

@@ -12,4 +12,5 @@ def style(match):
 html=re.sub(r'<link rel="stylesheet" crossorigin href="([^"]+)">',style,html)
 out=root/'release';out.mkdir(exist_ok=True)
 (out/'chagok.html').write_text(html)
+(root/'chagok.html').write_text(html)
 print('Created release/chagok.html')
