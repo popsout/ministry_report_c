@@ -68,7 +68,16 @@ test.describe('인증 보안 - 모의 서버',()=>{
  test('가입 화면에서 구글 비밀번호와 다른 새 비밀번호임을 명시한다',async({page,context})=>{
   await mockAuth(context);await page.goto('/?cloud=1');await page.getByRole('button',{name:'로그인',exact:true}).click();
   const d=page.getByRole('dialog');await expect(d).toContainText('구글 비밀번호 대신');await d.getByRole('button',{name:'처음이라면 계정 만들기'}).click();
-  await expect(d.locator('input[name=password]')).toHaveAttribute('autocomplete','new-password');await expect(d.locator('input[name=password]')).toHaveAttribute('minlength','12');
+  await expect(d.locator('input[name=password]')).toHaveAttribute('autocomplete','new-password');await expect(d.locator('input[name=password]')).toHaveAttribute('minlength','8');
   await expect(d.locator('input[name=passwordConfirm]')).toBeVisible();
+  let submitted=false;
+  await context.route('**/auth/v1/signup**',route=>{submitted=true;return route.fulfill({json:{user,session:null}});});
+  await d.locator('input[name=email]').fill('security-test@example.com');
+  await d.locator('input[name=password]').fill('abc1234');await d.locator('input[name=passwordConfirm]').fill('abc1234');
+  await d.getByRole('button',{name:'내 기록장 계정 만들기'}).click();expect(submitted).toBe(false);
+  await d.locator('input[name=password]').fill('abc12345');await d.locator('input[name=passwordConfirm]').fill('abc12345');
+  await d.getByRole('button',{name:'내 기록장 계정 만들기'}).click();
+  await expect(d.getByRole('status')).toContainText('인증 메일');expect(submitted).toBe(true);
+
  });
 });
