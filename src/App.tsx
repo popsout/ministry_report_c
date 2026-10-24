@@ -1,0 +1,95 @@
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { ArrowUpRight, BookOpen, CalendarDays, Check, ChevronLeft, ChevronRight, Clock3, DoorOpen, LayoutDashboard, Leaf, Mail, Plus, RefreshCw, Store, Trash2, X } from 'lucide-react';
+import { JOURNAL_KEY, readJournal, writeJournal } from './lib/localJournal';
+import { calendarDays, dateKey, formatTime, monthKey, summarize, TYPES, type Entry, type MonthSetting, type Role } from './lib/domain';
+
+const today = new Date();
+const COLORS = ['#8160b1', '#c2addc', '#e2d7ed'];
+const ICONS = [DoorOpen, Mail, Store];
+const ROLES: Role[] = ['일반', '보조 파이오니아', '정규 파이오니아'];
+function demoEntries(): Entry[] {
+  return [ [2,'호별',120], [4,'편지',45], [7,'호별',150], [10,'전시대',120], [13,'호별',90], [16,'편지',45], [19,'호별',120], [22,'전시대',60] ].map(([day, type, mins],i) => ({id:`demo-${i}`, user_id:'demo', service_date: dateKey(new Date(today.getFullYear(),today.getMonth(),Number(day))), service_type:type as Entry['service_type'], minutes:Number(mins), note:'', updated_at:''}));
+}
+export default function App() {
+  const demo = new URLSearchParams(window.location.search).get('preview') === '1';
+  const [initial] = useState(readJournal);
+  const rawRef = useRef(initial.raw);
+  const [entries,setEntries] = useState<Entry[]>(demo ? demoEntries : initial.data.entries);
+  const [settings,setSettings] = useState<MonthSetting[]>(demo ? [{month:monthKey(today),role:'보조 파이오니아',updated_at:''}] : initial.data.settings);
+  const [month,setMonth] = useState(new Date(today.getFullYear(),today.getMonth(),1));
+  const [selected,setSelected] = useState(dateKey(today));
+  const [scope,setScope] = useState<'month'|'all'>('month');
+  const [modal,setModal] = useState<'entry'|null>(null);
+  const [editing,setEditing] = useState<Entry|null>(null);
+  const busy = false;
+  const [notice,setNotice] = useState(demo ? '' : initial.error);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  function persist(nextEntries: Entry[], nextSettings: MonthSetting[]) {
+    try {
+      if(!demo) {
+        if(initial.error)throw new Error(initial.error);
+        rawRef.current=writeJournal({version:1,entries:nextEntries,settings:nextSettings},rawRef.current);
+      }
+      setEntries(nextEntries);setSettings(nextSettings);return true;
+    } catch(error){setNotice(error instanceof Error ? error.message : '저장하지 못했습니다.');return false;}
+  }
+  useEffect(()=>{
+    if(demo)return;
+    const refresh=(event: StorageEvent)=>{
+      if(event.key!==JOURNAL_KEY && event.key!==null)return;
+      const next=readJournal();
+      if(next.error){setNotice(next.error);return;}
+      rawRef.current=next.raw;setEntries(next.data.entries);setSettings(next.data.settings);
+    };
+    window.addEventListener('storage',refresh);
+    return ()=>window.removeEventListener('storage',refresh);
+  },[demo]);
+  useEffect(()=>{const el=dialogRef.current;if(modal && el && !el.open)el.showModal();else if(!modal && el?.open)el.close();},[modal]);
+  const monthEntries = entries.filter(e=>e.service_date.startsWith(monthKey(month).slice(0,7)));
+  const stats = summarize(scope==='month'?monthEntries:entries);
+  const monthly = summarize(monthEntries);
+  const activeDays = new Set(monthEntries.map(e=>e.service_date)).size;
+  const setting = settings.find(s=>s.month===monthKey(month));
+  const role = setting?.role || '일반';
+  const daily = entries.filter(e=>e.service_date===selected);
+  function shiftMonth(amount:number){const next=new Date(month.getFullYear(),month.getMonth()+amount,1);setMonth(next);setSelected(dateKey(next));}
+  function openEntry(entry:Entry|null=null){setEditing(entry);setModal('entry');setNotice('');}
+  function updateRole(next:Role){
+    const key=monthKey(month);setNotice('');
+    persist(entries,[...settings.filter(s=>s.month!==key),{month:key,role:next,updated_at:new Date().toISOString()}]);
+  }
+  function saveEntry(event:FormEvent<HTMLFormElement>){
+    event.preventDefault();const form=new FormData(event.currentTarget);
+    const minutes=Number(form.get('hours'))*60+Number(form.get('minutes'));
+    if(minutes===0){setNotice('봉사 시간을 15분 이상 선택해 주세요.');return;}
+    const payload={service_date:String(form.get('date')),service_type:String(form.get('type')) as Entry['service_type'],minutes,note:String(form.get('note')).trim()};
+    setNotice('');
+    if(editing && entries.find(e=>e.id===editing.id)?.updated_at!==editing.updated_at){setNotice('다른 탭에서 이 기록이 변경됐습니다. 창을 닫고 최신 기록을 다시 열어 주세요.');return;}
+    const next=[...entries.filter(e=>e.id!==editing?.id),{...payload,id:editing?.id || crypto.randomUUID(),user_id:'local',updated_at:new Date().toISOString()}];
+    if(persist(next,settings)){
+      setSelected(payload.service_date);setMonth(new Date(`${payload.service_date.slice(0,7)}-01T12:00:00`));setModal(null);
+    }
+  }
+  function deleteEntry(){
+    if(!editing || !window.confirm('이 봉사 기록을 삭제할까요?'))return;
+    if(entries.find(e=>e.id===editing.id)?.updated_at!==editing.updated_at){setNotice('다른 탭에서 이 기록이 변경됐습니다. 최신 기록을 다시 열어 주세요.');return;}
+    if(persist(entries.filter(e=>e.id!==editing.id),settings))setModal(null);
+  }
+  const segments=stats.types.reduce<{stops:string[];end:number}>((acc,item,i)=>{acc.stops.push(`${COLORS[i]} ${acc.end}% ${acc.end+item.percent}%`);acc.end+=item.percent;return acc;},{stops:[],end:0});
+  return <div className={`app theme-${role==='일반'?'normal':role==='보조 파이오니아'?'aux':'regular'}`}>
+    <aside className="sidebar"><a className="brand" href="#"><span className="brand-mark"><Leaf size={22}/></span>차곡<span className="brand-dot">.</span></a><span className="brand-caption">나의 작은 기록, 소중한 시간</span><div className="nav-label">MY WORKSPACE</div><a className="nav-item active" href="#calendar"><LayoutDashboard size={19}/>나의 봉사 기록</a><div className="sidebar-bottom"><div className="sidebar-note"><BookOpen size={22}/><p>하루의 봉사를<br/>차곡차곡 담아보세요.</p><span>작은 기록이 모여<br/>의미 있는 여정이 됩니다.</span></div><div className="profile"><span className="avatar">나</span><div><strong>나의 기록장</strong><small>{demo?'예시 화면':'이 브라우저에 저장'}</small></div><Check size={18}/></div></div></aside>
+    <main><header className="topbar"><span className="breadcrumb">나의 공간 <span>/</span> 봉사 기록</span><span className="sync"><span className="status-dot online"/>{demo?'예시 데이터':'이 브라우저에 저장'}</span></header>
+    <div className="content"><div className="page-title"><div><div className="eyebrow">MY MINISTRY JOURNAL</div><h1>나의 봉사 기록<span className="title-dot">.</span></h1><p>소중한 시간을 기록하고, 나의 봉사를 돌아보세요.</p></div><button className="primary" onClick={()=>openEntry()}><Plus size={18}/>봉사 기록하기</button></div>
+    <div className="connection-banner"><BookOpen size={19}/><span>{demo?'예시 화면입니다. 연습한 내용은 새로고침하면 사라지며 실제 기록과 섞이지 않습니다.':'기록은 현재 기기의 이 브라우저에 저장됩니다. 브라우저 데이터를 지우면 기록도 삭제됩니다.'}</span><a className="preview-link" href={demo?window.location.pathname:'?preview=1'}>{demo?'내 기록으로':'예시 화면 보기'}<ArrowUpRight size={15}/></a></div>
+    {notice && !modal && <div role="alert" className="notice">{notice}</div>}
+    <section className="month-toolbar"><div className="month-switch"><h2>{month.getFullYear()}년 {month.getMonth()+1}월</h2><button className="icon-button" aria-label="이전 달" onClick={()=>shiftMonth(-1)}><ChevronLeft size={18}/></button><button className="icon-button" aria-label="다음 달" onClick={()=>shiftMonth(1)}><ChevronRight size={18}/></button><button className="today-button" onClick={()=>{setMonth(new Date(today.getFullYear(),today.getMonth(),1));setSelected(dateKey(today));}}>이번 달</button></div><label className="role-select"><span className="role-dot"/><select aria-label="이 달의 파이오니아 신분" disabled={busy} value={role} onChange={e=>void updateRole(e.target.value as Role)}>{ROLES.map(r=><option key={r}>{r}</option>)}</select></label></section>
+    <section className="summary-grid"><div className="summary-card"><span className="summary-icon purple"><Clock3 size={21}/></span><span className="card-label">이번 달 총 봉사시간</span><strong className="summary-time"><span>{Math.floor(monthly.total/60)}<small>시간</small></span>{monthly.total%60>0&&<span>{monthly.total%60}<small>분</small></span>}</strong><span className="card-foot">한 번의 봉사도 소중하게</span></div><div className="summary-card"><span className="summary-icon peach"><CalendarDays size={21}/></span><span className="card-label">봉사한 날</span><strong>{activeDays}<small>일</small></strong><span className="card-foot">이번 달, 봉사에 참여한 날짜</span></div><div className="summary-card"><span className="summary-icon green"><BookOpen size={21}/></span><span className="card-label">봉사 기록 횟수</span><strong>{monthly.count}<small>회</small></strong><span className="card-foot">봉사 형태별 기록 1건 = 1회</span></div></section>
+    <div className="workspace"><section className="panel calendar-panel" id="calendar"><div className="panel-heading"><h3>봉사 캘린더</h3><span className="subtle"><span className="mini-dot"/>날짜를 눌러 기록을 확인하세요</span></div><div className="calendar-theme-strip"><Leaf size={15}/>{role==='일반'?'나만의 속도로, 꾸준히 쌓아가는 시간':`${role}로 함께하는 ${month.getMonth()+1}월`}<span>{role}</span></div><div className="weekdays">{'일 월 화 수 목 금 토'.split(' ').map((d,i)=><span className={i===0?'sunday':''} key={d}>{d}</span>)}</div><div className="calendar-grid">{calendarDays(month).map(day=>{const key=dateKey(day);const dayEntries=entries.filter(e=>e.service_date===key);const mins=dayEntries.reduce((s,e)=>s+e.minutes,0);return <button key={key} className={`day ${day.getMonth()!==month.getMonth()?'outside':''} ${key===selected?'selected':''} ${key===dateKey(today)?'is-today':''}`} aria-label={`${key}, ${formatTime(mins)}`} aria-pressed={key===selected} onClick={()=>{setSelected(key);if(day.getMonth()!==month.getMonth())setMonth(new Date(day.getFullYear(),day.getMonth(),1));}}><span className={`day-number ${day.getDay()===0?'sunday':''}`}>{day.getDate()}</span>{mins>0&&<><span className="day-time">{formatTime(mins)}</span><span className="day-dots">{TYPES.filter(t=>dayEntries.some(e=>e.service_type===t)).map(t=><i key={t} style={{background:COLORS[TYPES.indexOf(t)]}}/>)}</span></>}</button>;})}</div><div className="calendar-footer"><span><i/>봉사 기록이 있는 날</span><span>총 {activeDays}일의 소중한 기록</span></div></section>
+    <section className="panel stats-panel"><div className="panel-heading"><h3>봉사 형태별 비율</h3><ArrowUpRight size={17} className="muted"/></div><div className="scope-control"><button className={scope==='month'?'chosen':''} onClick={()=>setScope('month')}>이번 달</button><button className={scope==='all'?'chosen':''} onClick={()=>setScope('all')}>전체 기록</button></div><p className="ratio-caption"><Clock3 size={13}/>봉사 시간 기준으로 계산해요</p><div className="donut" role="img" aria-label={stats.types.map(t=>`${t.type} ${t.percent.toFixed(1)}%`).join(', ')} style={{background:stats.total?`conic-gradient(${segments.stops.join(',')})`:'#eeeaf2'}}><div><small>총 봉사시간</small><strong>{Math.floor(stats.total/60)}<span>시간</span></strong><small>{stats.total%60?`${stats.total%60}분`:'차곡차곡 쌓인 시간'}</small></div></div><div className="legend">{stats.types.map((item,i)=><div className="legend-row" key={item.type}><span className="legend-dot" style={{background:COLORS[i]}}/><div><strong>{item.type}</strong><small>{formatTime(item.minutes)} · {item.count}회</small></div><b>{item.percent.toFixed(1)}<small>%</small></b></div>)}</div><div className="count-total"><span>총 봉사 기록 횟수</span><strong>{stats.count}회</strong></div></section></div>
+    <section className="panel daily-panel"><div className="panel-heading"><div><h3>{Number(selected.slice(5,7))}월 {Number(selected.slice(8))}일의 기록 <span className="count-badge">{daily.length}</span></h3><p className="subtle">오늘의 소중한 시간을 돌아보세요.</p></div><button className="text-button" onClick={()=>openEntry()}><Plus size={16}/>기록 추가</button></div>{daily.length?daily.map(e=>{const Icon=ICONS[TYPES.indexOf(e.service_type)];return <button className="entry-row" key={e.id} onClick={()=>openEntry(e)}><span className="entry-icon"><Icon size={19}/></span><div><strong>{e.service_type} 봉사</strong><small>{e.note || '소중한 봉사의 기록'}</small></div><b>{formatTime(e.minutes)}</b><ChevronRight size={17}/></button>;}):<div className="empty-state"><CalendarDays size={24}/><span>아직 기록이 없는 날이에요.</span><button className="text-button" onClick={()=>openEntry()}>첫 기록 남기기<ArrowUpRight size={14}/></button></div>}</section>
+    <footer className="page-footer"><span><Leaf size={13}/>차곡, 나의 봉사 여정</span><span>작은 시간도 소중하게 기록해요.</span></footer></div></main>
+    <dialog ref={dialogRef} onCancel={e=>{if(busy){e.preventDefault();return;}setModal(null);}} onClose={()=>setModal(null)}><div className="dialog-header"><h2>{editing?'봉사 기록 수정':'봉사 기록하기'}</h2><button className="icon-button" aria-label="닫기" disabled={busy} onClick={()=>setModal(null)}><X size={21}/></button></div>
+    {modal==='entry'&&<form key={editing?.id||'new'} onSubmit={saveEntry} className="entry-form">{demo&&<p className="demo-note">미리보기 모드 · 입력 내용은 온라인에 저장되지 않아요.</p>}<label>봉사한 날짜<input required type="date" name="date" defaultValue={editing?.service_date||selected}/></label><fieldset><legend>봉사 형태</legend><div className="type-options">{TYPES.map((t,i)=>{const Icon=ICONS[i];return <label key={t}><input type="radio" name="type" value={t} defaultChecked={editing?editing.service_type===t:i===0}/><span><Icon size={19}/>{t}</span></label>;})}</div></fieldset><fieldset><legend>봉사 시간</legend><div className="time-selects"><label><select name="hours" aria-label="시간" defaultValue={editing?Math.floor(editing.minutes/60):1}><option value="0">시간 없음 (분만)</option>{Array.from({length:8},(_,i)=><option value={i+1} key={i}>{i+1}시간</option>)}</select></label><label><select name="minutes" aria-label="분" defaultValue={editing?editing.minutes%60:0}>{[0,15,30,45].map(n=><option value={n} key={n}>{n}분</option>)}</select></label></div></fieldset><label>메모 <small>선택 사항</small><textarea name="note" maxLength={500} rows={3} placeholder="짧은 메모를 남겨보세요." defaultValue={editing?.note}/></label>{notice&&<p className="notice" role="alert">{notice}</p>}<div className="form-actions">{editing&&<button type="button" className="delete-button" disabled={busy} onClick={()=>void deleteEntry()}><Trash2 size={17}/>삭제</button>}<button className="primary" disabled={busy}>{busy?<RefreshCw size={17}/>:<Check size={17}/>}기록 저장</button></div></form>}
+    </dialog>
+  </div>;
+}

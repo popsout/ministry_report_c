@@ -1,0 +1,53 @@
+import { test, expect } from '@playwright/test';
+test('월별 신분은 다른 월과 독립적으로 유지된다',async({page})=>{
+ await page.goto('/?preview=1');
+ const role=page.getByRole('combobox',{name:'이 달의 파이오니아 신분'});
+ await role.selectOption('정규 파이오니아');
+ await expect(page.locator('.app')).toHaveClass(/theme-regular/);
+ await page.getByRole('button',{name:'다음 달',exact:true}).click();
+ await expect(role).toHaveValue('일반');
+ await expect(page.locator('.app')).toHaveClass(/theme-normal/);
+ await page.getByRole('button',{name:'이전 달',exact:true}).click();
+ await expect(role).toHaveValue('정규 파이오니아');
+});
+test('선택식 기록의 생성, 수정, 삭제와 통계가 동작한다',async({page})=>{
+ await page.goto('/?preview=1');
+ await page.getByRole('button',{name:'봉사 기록하기',exact:true}).click();
+ const dialog=page.getByRole('dialog');
+ await dialog.locator('input[name=date]').fill('2026-11-05');
+ await dialog.getByText('편지',{exact:true}).click();
+ await dialog.getByRole('combobox',{name:'시간',exact:true}).selectOption('0');
+ await dialog.getByRole('combobox',{name:'분',exact:true}).selectOption('15');
+ await dialog.locator('textarea').fill('브라우저 테스트');
+ await dialog.getByRole('button',{name:'기록 저장'}).click();
+ await expect(dialog).not.toBeVisible();
+ await expect(page.locator('.summary-card').first()).toContainText('15분');
+ await expect(page.locator('.entry-row')).toContainText('편지 봉사');
+ await expect(page.locator('.legend-row').nth(1)).toContainText('100.0');
+ await expect(page.locator('.count-total')).toContainText('1회');
+ await page.locator('.entry-row').click();
+ await dialog.getByRole('combobox',{name:'시간',exact:true}).selectOption('2');
+ await dialog.getByRole('button',{name:'기록 저장'}).click();
+ await expect(page.locator('.entry-row')).toContainText('2시간 15분');
+ await page.locator('.entry-row').click();
+ page.once('dialog', d=>void d.accept());
+ await dialog.getByRole('button',{name:'삭제',exact:true}).click();
+ await expect(page.locator('.entry-row')).toHaveCount(0);
+ await expect(page.locator('.summary-card').first()).toContainText('0시간');
+});
+test('0분 기록을 막고 온라인 미연결 상태를 명시한다',async({page})=>{
+ await page.goto('/?preview=1');
+ await expect(page.locator('.connection-banner')).toContainText('새로고침하면 사라지며');
+ await page.getByRole('button',{name:'봉사 기록하기',exact:true}).click();
+ const dialog=page.getByRole('dialog');
+ await dialog.getByRole('combobox',{name:'시간',exact:true}).selectOption('0');
+ await dialog.getByRole('button',{name:'기록 저장'}).click();
+ await expect(dialog.getByRole('alert')).toContainText('15분 이상');
+ await expect(dialog).toBeVisible();
+});
+for (const width of [360,768,1440]) test(`${width}px에서 가로 넘침 없이 표시된다`,async({page})=>{
+ await page.setViewportSize({width,height:1000});await page.goto('/?preview=1');
+ await expect(page.getByRole('heading',{name:'봉사 캘린더'})).toBeVisible();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+ await page.screenshot({path:`test-results/journal-${width}.png`,fullPage:true,animations:'disabled'});
+});
