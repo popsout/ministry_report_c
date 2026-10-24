@@ -30,6 +30,7 @@ export default function App() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const cloud=useCloudJournal(data=>{if(supabase){setEntries(data.entries);setSettings(data.settings);}});
   const online=!!supabase;
+  const emailName=cloud.session?.user.email?.split('@')[0];
   useEffect(()=>{
     if(!online)return;
     setModal(null);setEditing(null);setNotice('');entryFromDay.current=false;
@@ -119,7 +120,7 @@ export default function App() {
   const chartLabel=(chartGoal ? `목표 ${formatTime(chartGoal.targetMinutes)}, ${formatTime(stats.total)} 봉사, ${chartGoal.percent}% 달성, 남은 시간 ${formatTime(chartGoal.remainingMinutes)}. ` : '')+stats.types.map(t=>`${t.type} ${formatTime(t.minutes)}`).join(', ');
   return <div className={`app theme-${role==='일반'?'normal':role==='보조 파이오니아'?'aux':'regular'}`}>
     <aside className="sidebar"><a className="brand" href="#"><span className="brand-mark"><Leaf size={22}/></span>차곡<span className="brand-dot">.</span></a><span className="brand-caption">나의 작은 기록, 소중한 시간</span><div className="nav-label">MY WORKSPACE</div><a className="nav-item active" href="#calendar"><LayoutDashboard size={19}/>나의 봉사 기록</a><div className="sidebar-bottom"><div className="sidebar-note"><BookOpen size={22}/><p>하루의 봉사를<br/>차곡차곡 담아보세요.</p><span>작은 기록이 모여<br/>의미 있는 여정이 됩니다.</span></div><div className="profile"><span className="avatar">나</span><div><strong>나의 기록장</strong><small>{demo?'예시 화면':online?'온라인 기록장':'이 브라우저에 저장'}</small></div><Check size={18}/></div></div></aside>
-    <main><header className="topbar"><span className="breadcrumb">나의 공간 <span>/</span> 봉사 기록</span><div className="topbar-actions"><span className="sync"><span className="status-dot online"/>{demo?'예시 데이터':online?cloud.status:'이 브라우저에 저장'}</span><PrivacyHelp/></div></header>
+    <main><header className="topbar"><span className="breadcrumb">나의 공간 <span>/</span> 봉사 기록</span><div className="topbar-actions"><div className="account-status">{emailName && <span className="welcome-message" title={`${emailName} 님 환영합니다`} aria-live="polite">{emailName} 님 환영합니다</span>}<span className="sync"><span className="status-dot online"/>{demo?'예시 데이터':online?cloud.status:'이 브라우저에 저장'}</span></div><PrivacyHelp/></div></header>
     <div className="content"><div className="page-title"><div><h1 className="journal-title">My Ministry Journal</h1><p>소중한 시간을 기록하고, 나의 봉사를 돌아보세요.</p></div><button className="primary" disabled={busy || (online && cloud.session!==null && !cloud.loaded)} onClick={()=>openEntry()}><Plus size={18}/>봉사 기록하기</button></div>
     <div className="connection-banner"><BookOpen size={19}/><span>{demo?'예시 화면입니다. 연습한 내용은 새로고침하면 사라지며 실제 기록과 섞이지 않습니다.':online?(cloud.session?'같은 계정으로 로그인한 PC와 휴대폰에서 기록을 공유합니다.':'이메일로 로그인하면 PC와 휴대폰에서 같은 기록을 사용할 수 있어요.'):'기록은 현재 기기의 이 브라우저에 저장됩니다. 브라우저 데이터를 지우면 기록도 삭제됩니다.'}</span>{online && !cloud.session && <button onClick={()=>setModal('auth')}>로그인</button>}{online && cloud.session && <><button onClick={()=>void cloud.load()}>새로고침</button><button disabled={busy} onClick={()=>void logout()}>로그아웃</button></>}<a className="preview-link" href={demo?window.location.pathname:'?preview=1'}>{demo?'내 기록으로':'예시 화면 보기'}<ArrowUpRight size={15}/></a></div>
     {online && cloud.error && <p className="notice" role="alert">{cloud.error}</p>}

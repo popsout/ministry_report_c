@@ -35,8 +35,11 @@ test.describe('온라인 저장 - 모의 서버',()=>{
    await page.getByRole('dialog').getByRole('button',{name:'로그인',exact:true}).click();
    await expect(page.getByRole('button',{name:'봉사 기록하기',exact:true})).toBeEnabled();
   }
-  const a=await browser.newContext(), b=await browser.newContext();await mock(a);await mock(b);
+  const a=await browser.newContext(), b=await browser.newContext({viewport:{width:360,height:800}});await mock(a);await mock(b);
   const pc=await a.newPage(),phone=await b.newPage();await login(pc);await login(phone);
+  await expect(pc.locator('.welcome-message')).toHaveText('test 님 환영합니다');
+  await expect(phone.locator('.welcome-message')).toHaveText('test 님 환영합니다');
+  expect(await phone.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await pc.getByRole('button',{name:'봉사 기록하기',exact:true}).click();await pc.getByRole('button',{name:'기록 저장',exact:true}).click();
   await expect(pc.getByRole('dialog')).not.toBeVisible();
   await phone.getByRole('button',{name:'새로고침',exact:true}).click();await expect(phone.locator('.summary-card').first()).toContainText('2시간');
@@ -49,6 +52,7 @@ test.describe('온라인 저장 - 모의 서버',()=>{
   await pc.getByRole('button',{name:'닫기',exact:true}).click();await pc.getByRole('button',{name:'새로고침',exact:true}).click();
   await expect(pc.locator('.summary-card').first()).toContainText('3시간');
   await pc.getByRole('button',{name:'로그아웃',exact:true}).click();await expect(pc.locator('.summary-card').first()).toContainText('0시간');
+  await expect(pc.locator('.welcome-message')).toHaveCount(0);
   await a.close();await b.close();
  });
 });
