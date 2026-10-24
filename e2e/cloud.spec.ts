@@ -29,6 +29,8 @@ test.describe('온라인 저장 - 모의 서버',()=>{
   }
   async function login(page:Page){
    await page.goto('http://127.0.0.1:5174/?cloud=1');
+   await expect(page.locator('.sync')).toContainText('로그인 필요');
+   await expect(page.locator('.sync .status-dot')).not.toHaveClass(/online/);
    await page.getByRole('button',{name:'로그인',exact:true}).click();
    await page.getByRole('dialog').locator('input[name=email]').fill('test@example.com');
    await page.getByRole('dialog').locator('input[name=password]').fill('test-password');
@@ -53,6 +55,8 @@ test.describe('온라인 저장 - 모의 서버',()=>{
   await expect(pc.locator('.summary-card').first()).toContainText('3시간');
   await pc.getByRole('button',{name:'로그아웃',exact:true}).click();await expect(pc.locator('.summary-card').first()).toContainText('0시간');
   await expect(pc.locator('.welcome-message')).toHaveCount(0);
+  await expect(pc.locator('.sync')).toContainText('로그인 필요');
+  await expect(pc.locator('.sync .status-dot')).toHaveCSS('background-color','rgb(140, 135, 149)');
   await a.close();await b.close();
  });
 });
