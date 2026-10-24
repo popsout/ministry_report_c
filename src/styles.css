@@ -91,7 +91,7 @@
 @media(max-width:760px){.goal-celebration{padding:25px 14px;gap:12px}.celebration-icon{width:38px;height:38px;border-radius:12px}.celebration-icon svg{width:23px}.celebration-copy h3{font-size:15px}.celebration-copy p{font-size:11px}.celebration-copy small{font-size:9px}.celebration-replay{width:30px;height:30px}}
 @media(prefers-reduced-motion:reduce){.firework i{animation:none;opacity:.35;box-shadow:none;transform:rotate(var(--angle)) translateY(-48px) scale(.65)}}
 
-.fullscreen-fireworks{position:fixed;inset:0;z-index:100;pointer-events:none;overflow:hidden;background:linear-gradient(180deg,#080e25eb,#17152cde)}
+.fullscreen-fireworks{position:fixed;inset:0;z-index:100;pointer-events:none;overflow:hidden;background:transparent}
 .fullscreen-fireworks canvas{display:block;width:100%;height:100%;pointer-events:none}
 .fireworks-stop{position:absolute;top:max(18px,env(safe-area-inset-top));right:max(18px,env(safe-area-inset-right));pointer-events:auto;display:flex;align-items:center;gap:7px;min-height:46px;padding:10px 15px;border:1px solid #d4a03a;border-radius:24px;background:#fff8e9;color:#65418a;font-size:12px;font-weight:700;box-shadow:0 4px 20px #70480b30}
 .fireworks-stop:hover{background:#ffe6a0}.fireworks-stop:focus-visible{outline:3px solid #76559e;outline-offset:3px}

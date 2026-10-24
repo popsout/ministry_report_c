@@ -33,6 +33,8 @@ test('목표 달성·초과 달성 시 잔여는 0이며 표시 막대는 넘치
  await expect(page.locator('.app')).toHaveClass(/goal-achieved/);
  const fullscreen=page.getByRole('region',{name:'전체 화면 축하 폭죽'});
  await expect(fullscreen).toBeVisible();
+ await expect(fullscreen).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
+ await expect(fullscreen).toHaveCSS('background-image','none');
  await page.getByRole('button',{name:'전체 화면 폭죽 멈추기'}).click();
  await expect(fullscreen).toHaveCount(0);
  expect(await celebration.locator('.firework i').first().evaluate(el=>getComputedStyle(el).animationIterationCount)).toBe('infinite');
