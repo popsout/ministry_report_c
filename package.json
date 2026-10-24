@@ -9,7 +9,8 @@
     "preview": "vite preview --host 0.0.0.0",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "build:standalone": "npm run build && python3 scripts/standalone.py"
+    "build:standalone": "tsc -b && vite build --mode device && python3 scripts/standalone.py",
+    "publish:pages": "python3 scripts/publish-pages.py"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.0.0",
