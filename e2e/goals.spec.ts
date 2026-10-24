@@ -31,13 +31,18 @@ test('목표 달성·초과 달성 시 잔여는 0이며 표시 막대는 넘치
  const celebration=page.getByRole('region',{name:'목표 달성 축하'});
  await expect(celebration).toBeVisible();await expect(celebration).toContainText('15시간');
  await expect(page.locator('.app')).toHaveClass(/goal-achieved/);
+ const fullscreen=page.getByRole('region',{name:'전체 화면 축하 폭죽'});
+ await expect(fullscreen).toBeVisible();
+ await page.getByRole('button',{name:'전체 화면 폭죽 멈추기'}).click();
+ await expect(fullscreen).toHaveCount(0);
+ expect(await celebration.locator('.firework i').first().evaluate(el=>getComputedStyle(el).animationIterationCount)).toBe('infinite');
  const fireworks=celebration.locator('.celebration-fireworks');const before=await fireworks.elementHandle();
  await celebration.getByRole('button',{name:'축하 폭죽 다시 보기'}).click();
- expect(await before!.evaluate(el=>el.isConnected)).toBe(false);
+ expect(await before!.evaluate(el=>el.isConnected)).toBe(false);await expect(fullscreen).toBeVisible();
  await page.emulateMedia({reducedMotion:'reduce'});
  expect(await celebration.locator('.firework i').first().evaluate(el=>getComputedStyle(el).animationName)).toBe('none');
  page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'30시간',exact:true}).click();
- await expect(celebration).toHaveCount(0);await expect(page.locator('.app')).not.toHaveClass(/goal-achieved/);
+ await expect(celebration).toHaveCount(0);await expect(fullscreen).toHaveCount(0);await expect(page.locator('.app')).not.toHaveClass(/goal-achieved/);
 
 });
 for(const width of [360,768])test(`${width}px에서 목표 선택 박스가 넘치지 않는다`,async({page})=>{
