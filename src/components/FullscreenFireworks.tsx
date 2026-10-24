@@ -2,10 +2,15 @@ import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
-const colors = ['#ed2955', '#1686ed', '#08a97b', '#dc9900', '#9845df', '#e832ac'];
+// Each shell has a related set of ember colors, without a rainbow wheel.
+const palettes = [
+  ['#c98b29', '#e6ad4d', '#ffe3a0', '#dc7459'],
+  ['#c98b29', '#e4b665', '#ffe7b1', '#779bc5'],
+  ['#bb8035', '#dfa447', '#ffdf94', '#c96970'],
+];
 type Point = { x:number; y:number };
-type Spark = Point & { vx:number; vy:number; life:number; color:string; size:number; trail:Point[] };
-type Rocket = { start:Point; target:Point; age:number; duration:number; trail:Point[] };
+type Spark = Point & { vx:number; vy:number; life:number; color:string; size:number; shimmer:number; trail:Point[] };
+type Rocket = { start:Point; target:Point; age:number; duration:number; palette:string[]; trail:Point[] };
 
 export default function FullscreenFireworks({ onStop }: { onStop: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -19,24 +24,32 @@ export default function FullscreenFireworks({ onStop }: { onStop: () => void }) 
     function launch() {
       const targetX=width*(.15+Math.random()*.7);
       launches++;
-      rockets.push({start:{x:Math.max(20,Math.min(width-20,targetX+(Math.random()-.5)*width*.3)),y:height+12},target:{x:targetX,y:height*(.16+Math.random()*.38)},age:0,duration:1.05+Math.random()*.35,trail:[]});
+      rockets.push({start:{x:Math.max(20,Math.min(width-20,targetX+(Math.random()-.5)*width*.3)),y:height+12},target:{x:targetX,y:height*(.16+Math.random()*.38)},age:0,duration:1.05+Math.random()*.35,palette:palettes[launches%palettes.length],trail:[]});
     }
     function burst(rocket:Rocket) {
-      const speed=Math.min(width*.48,height*.31,320);
-      // Coherent radial shells and long trails give each explosion a clear shape.
-      for(let i=0;i<132;i++) {
-        const angle=Math.PI*2*(i%66)/66+(i<66?0:.035);
-        const velocity=speed*(i<66?.88+Math.random()*.12:.48+Math.random()*.12);
-        const life=1.8+Math.random()*.65;
-        sparks.push({...rocket.target,vx:Math.cos(angle)*velocity,vy:Math.sin(angle)*velocity,life,color:colors[Math.floor((i%66)/4)%colors.length],size:i<66?2.5:1.8,trail:[{...rocket.target}]});
+      const speed=Math.min(width*.58,height*.38,355);
+      // Uneven spherical shells leave fine, curved ember trails as gravity takes over.
+      for(let i=0;i<150;i++) {
+        const angle=Math.PI*2*i/150+(Math.random()-.5)*.09;
+        const depth=Math.random()*2-1;
+        const velocity=speed*Math.sqrt(1-depth*depth)*(.72+Math.random()*.28);
+        const life=2.1+Math.random()*1.15;
+        const shade=Math.random();
+        const color=rocket.palette[shade<.48?0:shade<.72?1:shade<.87?2:3];
+        sparks.push({...rocket.target,vx:Math.cos(angle)*velocity,vy:Math.sin(angle)*velocity*.82,life,color,size:.7+Math.random()*.7,shimmer:Math.random()*Math.PI*2,trail:[{...rocket.target}]});
       }
     }
     function line(trail:Point[],color:string,width:number,opacity:number) {
-      for(let i=1;i<trail.length;i++) {
-        ctx!.globalAlpha=opacity*(i/trail.length);
-        ctx!.strokeStyle=color;ctx!.lineWidth=width;ctx!.lineCap='round';
-        ctx!.beginPath();ctx!.moveTo(trail[i-1].x,trail[i-1].y);ctx!.lineTo(trail[i].x,trail[i].y);ctx!.stroke();
-      }
+      if(trail.length<2)return;
+      const tail=trail[0],head=trail[trail.length-1];
+      if(Math.hypot(head.x-tail.x,head.y-tail.y)<.05)return;
+      const gradient=ctx!.createLinearGradient(tail.x,tail.y,head.x,head.y);
+      gradient.addColorStop(0,color+'00');gradient.addColorStop(.45,color+'80');gradient.addColorStop(1,color);
+      ctx!.globalAlpha=opacity;ctx!.strokeStyle=gradient;ctx!.lineCap='round';
+      ctx!.beginPath();ctx!.moveTo(tail.x,tail.y);
+      for(let i=1;i<trail.length;i++)ctx!.lineTo(trail[i].x,trail[i].y);
+      ctx!.lineWidth=width*3;ctx!.globalAlpha=opacity*.12;ctx!.stroke();
+      ctx!.lineWidth=width;ctx!.globalAlpha=opacity;ctx!.stroke();
     }
     function resize() {
       width=window.innerWidth;height=window.innerHeight;
@@ -49,7 +62,7 @@ export default function FullscreenFireworks({ onStop }: { onStop: () => void }) 
         for(let shell=0;shell<3;shell++)for(let ray=0;ray<32;ray++) {
           const angle=ray*Math.PI/16, radius=Math.min(width,height)*.16;
           const x=width*(.22+shell*.28), y=height*(.25+shell*.14);
-          line([{x:x+Math.cos(angle)*radius*.4,y:y+Math.sin(angle)*radius*.4},{x:x+Math.cos(angle)*radius,y:y+Math.sin(angle)*radius}],colors[ray%colors.length],2,.8);
+          line([{x:x+Math.cos(angle)*radius*.4,y:y+Math.sin(angle)*radius*.4},{x:x+Math.cos(angle)*radius,y:y+Math.sin(angle)*radius}],palettes[shell][ray%4],1.2,.8);
         }
         ctx!.globalAlpha=1;
       } else launch();
@@ -66,18 +79,19 @@ export default function FullscreenFireworks({ onStop }: { onStop: () => void }) 
         const ease=1-Math.pow(1-progress,1.6);
         const point={x:rocket.start.x+(rocket.target.x-rocket.start.x)*ease,y:rocket.start.y+(rocket.target.y-rocket.start.y)*ease};
         rocket.trail.push(point);if(rocket.trail.length>22)rocket.trail.shift();
-        line(rocket.trail,'#d79a13',2.5,1);
+        line(rocket.trail,'#c38b37',1.4,1);
         if(progress===1)burst(rocket);
       }
       rockets=rockets.filter(rocket=>rocket.age<rocket.duration);
       sparks=sparks.filter(spark=>spark.life>0);
       for(const spark of sparks) {
         spark.life-=dt;
-        spark.vx*=Math.exp(-dt*.48);spark.vy*=Math.exp(-dt*.48);spark.vy+=50*dt;
+        spark.vx*=Math.exp(-dt*.62);spark.vy*=Math.exp(-dt*.62);spark.vy+=78*dt;
         spark.x+=spark.vx*dt;spark.y+=spark.vy*dt;
-        spark.trail.push({x:spark.x,y:spark.y});if(spark.trail.length>32)spark.trail.shift();
-        const opacity=Math.max(0,Math.min(1,spark.life/.85));
-        line(spark.trail,spark.color,spark.size,opacity);
+        spark.trail.push({x:spark.x,y:spark.y});if(spark.trail.length>26)spark.trail.shift();
+        const opacity=Math.max(0,Math.min(1,spark.life/1.3));
+        const shimmer=spark.life<1 ? .72+.28*Math.sin(time*.018+spark.shimmer) : 1;
+        line(spark.trail,spark.color,spark.size,opacity*shimmer);
       }
       ctx!.globalAlpha=1;
       frame=requestAnimationFrame(draw);
