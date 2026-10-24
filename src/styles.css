@@ -72,16 +72,19 @@
 .journal-title{font-weight:800;letter-spacing:-1px}.journal-title>span{color:#76559e}
 @media(max-width:760px){.page-title{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px}.page-title>div{min-width:0}.journal-title{font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:clamp(24px,6vw,28px);font-weight:800;line-height:1.15;letter-spacing:-.6px;margin-bottom:10px}.journal-title>span{display:block}.page-title .primary{margin-top:0;padding:12px 11px;font-size:11px}.page-title p{line-height:1.7}}
 
-/* Goal celebrations keep service colors and the monthly role theme intact. */
-.goal-achieved .calendar-panel{border-color:#dec17d;box-shadow:0 0 0 1px #f5e7bf,0 8px 25px #c8952510}
-.goal-achieved .goal-summary{background:linear-gradient(120deg,#fffbeb,var(--tint));border-color:#ead7a0}
-.goal-celebration{position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;gap:17px;padding:24px;margin:0 0 24px;border:1px solid #e8d49d;border-radius:14px;background:linear-gradient(110deg,#fff9e8,#fffdf8 55%,#f6edff);box-shadow:0 6px 22px #ac7a1910}
-.celebration-icon{flex-shrink:0;display:grid;place-items:center;width:52px;height:52px;border-radius:16px;background:#fff1c8;color:#986421;box-shadow:0 0 0 5px #ffffff9e}
-.celebration-copy{flex:1;min-width:0;z-index:1}.celebration-copy small{font-size:10px;font-weight:700;letter-spacing:.5px;color:#876425}.celebration-copy h3{font-size:18px;line-height:1.5;color:#63442a;margin:4px 0}.celebration-copy p{font-size:12px;line-height:1.7;margin:0;color:#705d4c;word-break:keep-all}
-.celebration-replay{z-index:1;flex-shrink:0;align-self:flex-start;display:grid;place-items:center;width:32px;height:32px;background:#ffffffb8;border:1px solid #e8d9b2;color:#846122;border-radius:50%}
-.celebration-replay:hover{background:#ffefc6}.celebration-fireworks{position:absolute;inset:0;z-index:-1;pointer-events:none}.firework{position:absolute;width:1px;height:1px;left:77%;top:52%}.firework-1{left:93%;top:26%}.firework-2{left:58%;top:72%}
-.firework i{position:absolute;display:block;width:5px;height:9px;background:var(--spark-color);border-radius:3px;opacity:0;animation:celebration-burst 3s ease-out 3;transform:rotate(var(--angle)) translateY(-8px)}
-.firework-1 i{animation-delay:.65s}.firework-2 i{animation-delay:1.3s}
-@keyframes celebration-burst{0%{opacity:0;transform:rotate(var(--angle)) translateY(-5px) scale(.3)}12%{opacity:.8}65%{opacity:0;transform:rotate(var(--angle)) translateY(-74px) scale(.5)}100%{opacity:0;transform:rotate(var(--angle)) translateY(-74px) scale(.5)}}
-@media(max-width:760px){.goal-celebration{padding:18px 14px;gap:12px}.celebration-icon{width:38px;height:38px;border-radius:12px}.celebration-icon svg{width:23px}.celebration-copy h3{font-size:15px}.celebration-copy p{font-size:11px}.celebration-copy small{font-size:9px}.celebration-replay{width:30px;height:30px}.firework{left:85%}.firework-2{left:40%}}
-@media(prefers-reduced-motion:reduce){.firework i{animation:none;opacity:.3;transform:rotate(var(--angle)) translateY(-42px) scale(.65)}}
+/* Gold celebration accents preserve the purple role and service colors. */
+.goal-achieved .calendar-panel{border-color:#cc9a32;box-shadow:0 0 0 2px #efce7b66,0 8px 28px #bd8a2426}
+.goal-achieved .calendar-panel>.panel-heading{background:linear-gradient(110deg,#fff0bf,#faf3ff 80%)}
+.goal-achieved .calendar-theme-strip{border:1px solid #dfbd64}
+.goal-achieved .goal-summary{background:linear-gradient(120deg,#ffeab0,#fff8df 48%,var(--tint));border-color:#d9ad44}
+.goal-celebration{position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;gap:17px;padding:30px 24px;margin:0 0 24px;border:2px solid #d3a13d;border-radius:14px;background:radial-gradient(ellipse at 3% 0%,#f6ce67a6,transparent 55%),radial-gradient(ellipse at 100% 100%,#d8b4f78c,transparent 65%),linear-gradient(110deg,#fff0b9,#fff7db 50%,#f1e4ff);box-shadow:inset 0 0 0 3px #fff8df,0 7px 26px #a979252b}
+.celebration-icon{position:relative;z-index:1;flex-shrink:0;display:grid;place-items:center;width:52px;height:52px;border:1px solid #ca952f;border-radius:16px;background:linear-gradient(135deg,#ffe8a2,#e9b749);color:#70430b;box-shadow:0 0 0 5px #fff8df9e,0 4px 14px #a7742c26}
+.celebration-copy{position:relative;flex:1;min-width:0;z-index:1;text-shadow:0 1px 5px #fff8e6,0 0 12px #fff8e6}.celebration-copy small{font-size:10px;font-weight:700;letter-spacing:.5px;color:#79510e}.celebration-copy h3{font-size:18px;line-height:1.5;color:#68418a;margin:4px 0}.celebration-copy p{font-size:12px;line-height:1.7;margin:0;color:#654d39;word-break:keep-all}
+.celebration-replay{z-index:1;flex-shrink:0;align-self:flex-start;display:grid;place-items:center;width:32px;height:32px;background:#fff8df;border:1px solid #bc8d2c;color:#76559e;border-radius:50%}
+.celebration-replay:hover{background:#ffe6a1}.celebration-fireworks{position:absolute;inset:0;z-index:0;pointer-events:none}.firework{position:absolute;width:1px;height:1px;left:12%;top:35%}.firework-1{left:90%;top:35%}.firework-2{left:55%;top:75%}.firework-3{left:32%;top:12%}.firework-4{left:73%;top:15%}.firework-5{left:97%;top:90%}
+.firework i{position:absolute;display:block;width:7px;height:15px;background:var(--spark-color);box-shadow:0 0 7px var(--spark-color);border-radius:2px;opacity:0;animation:celebration-burst 2.8s cubic-bezier(.12,.65,.3,1) 4;transform:rotate(var(--angle)) translateY(-8px)}
+.firework i:nth-child(even){width:5px;height:8px;border-radius:50%}
+.firework-1 i{animation-delay:.35s}.firework-2 i{animation-delay:.7s}.firework-3 i{animation-delay:1.05s}.firework-4 i{animation-delay:1.4s}.firework-5 i{animation-delay:1.75s}
+@keyframes celebration-burst{0%{opacity:0;transform:rotate(var(--angle)) translateY(-4px) scale(.35)}8%{opacity:1}30%{opacity:1}65%{opacity:.8}85%,100%{opacity:0;transform:rotate(var(--angle)) translateY(-125px) scale(.55)}}
+@media(max-width:760px){.goal-celebration{padding:25px 14px;gap:12px}.celebration-icon{width:38px;height:38px;border-radius:12px}.celebration-icon svg{width:23px}.celebration-copy h3{font-size:15px}.celebration-copy p{font-size:11px}.celebration-copy small{font-size:9px}.celebration-replay{width:30px;height:30px}}
+@media(prefers-reduced-motion:reduce){.firework i{animation:none;opacity:.35;box-shadow:none;transform:rotate(var(--angle)) translateY(-48px) scale(.65)}}
