@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test';
 test('보조 목표 전환과 정규 50시간이 월 합계로 계산된다',async({page})=>{
  await page.goto('/?preview=1');const summary=page.getByRole('region',{name:'이번 달 목표 달성 현황'});
  await expect(summary).toContainText('83.3%');await expect(summary).toContainText('2시간 30분');
- await page.getByRole('button',{name:'30시간',exact:true}).click();
+ page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'30시간',exact:true}).click();
  await expect(summary).toContainText('41.7%');await expect(summary).toContainText('17시간 30분');
  await page.getByRole('button',{name:'전체 기록',exact:true}).click();await expect(summary).toContainText('41.7%');
  await page.getByRole('combobox',{name:'이 달의 파이오니아 신분'}).selectOption('정규 파이오니아');
@@ -12,7 +12,7 @@ test('보조 목표 전환과 정규 50시간이 월 합계로 계산된다',asy
 });
 test('보조 목표를 월별로 저장하고 초기화 후에도 유지한다',async({page})=>{
  await page.goto('/');const role=page.getByRole('combobox',{name:'이 달의 파이오니아 신분'});
- await role.selectOption('보조 파이오니아');await page.getByRole('button',{name:'30시간',exact:true}).click();await page.reload();
+ await role.selectOption('보조 파이오니아');page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'30시간',exact:true}).click();await page.reload();
  await expect(page.getByRole('button',{name:'30시간',exact:true})).toHaveAttribute('aria-pressed','true');
  await page.getByRole('button',{name:'다음 달',exact:true}).click();await role.selectOption('보조 파이오니아');
  await expect(page.getByRole('button',{name:'15시간',exact:true})).toHaveAttribute('aria-pressed','true');
@@ -33,4 +33,13 @@ for(const width of [360,768])test(`${width}px에서 목표 선택 박스가 넘�
  await page.setViewportSize({width,height:1000});await page.goto('/?preview=1');
  await expect(page.getByRole('button',{name:'30시간',exact:true})).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
+test('목표 전환을 확인하며 취소 시 목표를 유지하고 같은 선택에는 확인하지 않는다',async({page})=>{
+ await page.goto('/?preview=1');await expect(page.getByRole('heading',{level:1})).toHaveText('My Ministry Journal');
+ let dialogs=0;page.on('dialog',d=>{dialogs++;if(dialogs===1){expect(d.message()).toContain('15시간에서 30시간');void d.dismiss();}else{expect(d.message()).toContain('15시간에서 30시간');void d.accept();}});
+ await page.getByRole('button',{name:'15시간',exact:true}).click();expect(dialogs).toBe(0);
+ await page.getByRole('button',{name:'30시간',exact:true}).click();await expect(page.getByRole('button',{name:'15시간',exact:true})).toHaveAttribute('aria-pressed','true');
+ await expect(page.locator('.donut')).toHaveAccessibleName(/목표 15시간/);
+ await page.getByRole('button',{name:'30시간',exact:true}).click();await expect(page.getByRole('button',{name:'30시간',exact:true})).toHaveAttribute('aria-pressed','true');
+ await page.getByRole('button',{name:'30시간',exact:true}).click();expect(dialogs).toBe(2);
 });

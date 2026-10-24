@@ -27,3 +27,12 @@ export function monthlyGoalProgress(role: Role, totalMinutes: number, auxiliaryG
   if (!targetMinutes) return null;
   return { targetMinutes, remainingMinutes: Math.max(0, targetMinutes - totalMinutes), percent: Math.round(totalMinutes / targetMinutes * 1000) / 10, achieved: totalMinutes >= targetMinutes };
 }
+
+export function donutProgress(minutesByType: number[], targetMinutes = 0) {
+  const total = minutesByType.reduce((sum, minutes) => sum + minutes, 0);
+  // Once the goal is exceeded, keep every type proportional within a full ring.
+  const denominator = Math.max(targetMinutes, total);
+  const portions = minutesByType.map(minutes => denominator ? minutes / denominator * 100 : 0);
+  const filledPercent = denominator ? Math.min(100, total / denominator * 100) : 0;
+  return { portions, filledPercent, remainingPercent: 100 - filledPercent };
+}
