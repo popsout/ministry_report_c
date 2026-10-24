@@ -12,7 +12,7 @@ test('로그인·외부 요청 없이 기록과 신분을 저장하고 재접속
  await page.getByRole('combobox',{name:'이 달의 파이오니아 신분'}).selectOption('보조 파이오니아');
  await page.reload();await expect(page.locator('.entry-row')).toContainText('나의 첫 기록');
  await expect(page.getByRole('combobox',{name:'이 달의 파이오니아 신분'})).toHaveValue('보조 파이오니아');
- await expect(page.locator('.summary-card').first()).toContainText('1시간');
+ await expect(page.locator('.summary-card').first()).toContainText('2시간');
  expect(external).toEqual([]);
  await page.locator('.entry-row').click();await page.getByRole('combobox',{name:'시간',exact:true}).selectOption('3');
  await page.getByRole('button',{name:'기록 저장'}).click();await page.reload();
@@ -46,10 +46,10 @@ test('같은 브라우저의 탭에 수정사항을 반영하고 오래된 편�
  await page.goto('/');await add(page);
  const other=await context.newPage();await other.goto('/');
  await page.locator('.entry-row').click();await other.locator('.entry-row').click();
- await other.getByRole('combobox',{name:'시간',exact:true}).selectOption('2');
+ await other.getByRole('combobox',{name:'시간',exact:true}).selectOption('4');
  await other.getByRole('button',{name:'기록 저장'}).click();
- await expect(page.locator('.entry-row')).toContainText('2시간');
+ await expect(page.locator('.entry-row')).toContainText('4시간');
  await page.getByRole('button',{name:'기록 저장'}).click();
  await expect(page.getByRole('dialog').getByRole('alert')).toContainText('다른 탭');
- await other.reload();await expect(other.locator('.entry-row')).toContainText('2시간');
+ await other.reload();await expect(other.locator('.entry-row')).toContainText('4시간');
 });

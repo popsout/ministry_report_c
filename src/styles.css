@@ -16,3 +16,9 @@
 .stats-panel .scope-control button.chosen,.stats-panel .legend-row b,.stats-panel .count-total strong{color:var(--accent)}
 .stats-panel .scope-control{background:var(--tint)}
 .stats-panel .legend-row,.stats-panel .count-total{border-color:var(--border)}
+
+.heading-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px}
+.reset-button{background:transparent;border:1px solid #e8dce0;color:#a66d79;padding:5px 8px;font-size:10px;white-space:nowrap}
+.reset-button:hover:not(:disabled){background:#fcf0f2;border-color:#d7aeb8}
+.reset-button:disabled{opacity:.4;cursor:default}
+@media(max-width:760px){.calendar-panel .panel-heading>.subtle{display:none}.daily-panel .panel-heading{align-items:flex-start}.heading-actions{gap:7px}.reset-button{font-size:9px}}
