@@ -69,5 +69,5 @@
 @media(max-width:760px){.welcome-message{max-width:min(150px,40vw);font-size:11px}.account-status .sync{font-size:10px}.topbar-actions{min-width:0}}
 
 .status-dot{background:#8c8795}.status-dot.pending{background:#d58a16}.status-dot.error{background:#c34c5e}.status-dot.online{background:#43956b}
-.journal-title{font-weight:800;letter-spacing:-1px}.journal-title>span{color:var(--accent)}
-@media(max-width:760px){.page-title{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px}.page-title>div{min-width:0}.journal-title{font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:clamp(28px,7.5vw,36px);font-weight:800;line-height:1.08;letter-spacing:-1.2px;margin-bottom:12px}.journal-title>span{display:block}.page-title .primary{margin-top:0;padding:12px 11px;font-size:11px}.page-title p{line-height:1.7}}
+.journal-title{font-weight:800;letter-spacing:-1px}.journal-title>span{color:#76559e}
+@media(max-width:760px){.page-title{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px}.page-title>div{min-width:0}.journal-title{font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:clamp(24px,6vw,28px);font-weight:800;line-height:1.15;letter-spacing:-.6px;margin-bottom:10px}.journal-title>span{display:block}.page-title .primary{margin-top:0;padding:12px 11px;font-size:11px}.page-title p{line-height:1.7}}

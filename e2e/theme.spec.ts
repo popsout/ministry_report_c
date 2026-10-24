@@ -5,6 +5,7 @@ for(const palette of palettes)test(`${palette.role}에서도 도넛·범례·달
  await page.goto('/?preview=1');
  const before=await page.locator('.legend-row').allTextContents();
  await page.getByRole('combobox',{name:'이 달의 파이오니아 신분'}).selectOption(palette.role);
+ await expect(page.locator('.journal-title>span')).toHaveCSS('color','rgb(118, 85, 158)');
  for(let i=0;i<3;i++){
   await expect(page.locator('.legend-dot').nth(i)).toHaveCSS('background-color',palette.colors[i]);
   await expect(page.locator('.donut')).toHaveCSS('background-image',new RegExp(palette.colors[i].replace(/[()]/g,'\\$&')));
