@@ -11,7 +11,7 @@ export function parseJournal(raw: string): Journal {
   const data=JSON.parse(raw);
   if(data?.version!==1 || !Array.isArray(data.entries) || !Array.isArray(data.settings))throw new Error('invalid');
   if(!data.entries.every((e: Entry)=>e && typeof e.id==='string' && typeof e.user_id==='string' && validDate(e.service_date) && TYPES.includes(e.service_type) && Number.isInteger(e.minutes) && e.minutes>=15 && e.minutes<=525 && e.minutes%15===0 && typeof e.note==='string' && e.note.length<=500 && typeof e.updated_at==='string'))throw new Error('invalid');
-  if(!data.settings.every((s: MonthSetting)=>s && validDate(s.month) && s.month.endsWith('-01') && ['일반','보조 파이오니아','정규 파이오니아'].includes(s.role) && typeof s.updated_at==='string'))throw new Error('invalid');
+  if(!data.settings.every((s: MonthSetting)=>s && validDate(s.month) && s.month.endsWith('-01') && ['일반','보조 파이오니아','정규 파이오니아'].includes(s.role) && typeof s.updated_at==='string' && (s.auxiliaryGoalHours===undefined || s.auxiliaryGoalHours===15 || s.auxiliaryGoalHours===30)))throw new Error('invalid');
   return data;
 }
 export function readJournal() {

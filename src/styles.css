@@ -22,3 +22,10 @@
 .reset-button:hover:not(:disabled){background:#fcf0f2;border-color:#d7aeb8}
 .reset-button:disabled{opacity:.4;cursor:default}
 @media(max-width:760px){.calendar-panel .panel-heading>.subtle{display:none}.daily-panel .panel-heading{align-items:flex-start}.heading-actions{gap:7px}.reset-button{font-size:9px}}
+
+.goal-options{display:flex;gap:5px}.goal-option,.goal-fixed{border:1px solid var(--border);border-radius:5px;padding:5px 8px;font-size:10px;white-space:nowrap;color:var(--accent);background:white}
+.goal-option[aria-pressed=true],.goal-fixed{background:var(--tint);border-color:var(--accent);font-weight:600}
+.goal-option:hover{background:var(--tint)}.goal-summary{margin:14px 20px 0;padding:15px;border:1px solid var(--border);border-radius:8px;background:var(--tint)}
+.goal-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.goal-metrics>div{display:flex;flex-direction:column;gap:7px}.goal-metrics small{color:#82788e;font-size:10px}.goal-metrics strong{font-size:16px;font-weight:600;color:var(--accent)}
+.goal-progress{height:6px;margin-top:15px;border-radius:9px;overflow:hidden;background:var(--tint-strong)}.goal-progress>span{display:block;height:100%;background:var(--accent);border-radius:9px}.goal-summary p{margin:9px 0 0;font-size:10px;color:var(--accent);line-height:1.7}
+@media(max-width:760px){.goal-summary{margin:12px 16px 0;padding:12px}.goal-metrics strong{font-size:14px}.goal-metrics small{font-size:9px}.goal-option,.goal-fixed{font-size:9px;padding:5px 7px}.calendar-panel .heading-actions{gap:7px}}

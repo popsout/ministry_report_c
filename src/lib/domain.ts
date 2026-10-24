@@ -2,7 +2,7 @@ export const TYPES = ['호별', '편지', '전시대'] as const;
 export type ServiceType = typeof TYPES[number];
 export type Role = '일반' | '보조 파이오니아' | '정규 파이오니아';
 export type Entry = { id: string; user_id: string; service_date: string; service_type: ServiceType; minutes: number; note: string; updated_at: string };
-export type MonthSetting = { month: string; role: Role; updated_at: string };
+export type MonthSetting = { month: string; role: Role; auxiliaryGoalHours?: 15 | 30; updated_at: string };
 export const pad = (v: number) => String(v).padStart(2, '0');
 export function dateKey(d: Date) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
 export function monthKey(d: Date) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-01`; }
@@ -20,4 +20,10 @@ export function calendarDays(month: Date) {
   const start = new Date(first); start.setDate(1 - first.getDay());
   const count = Math.ceil((first.getDay() + new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate()) / 7) * 7;
   return Array.from({length: count}, (_, i) => new Date(start.getFullYear(), start.getMonth(), start.getDate() + i));
+}
+
+export function monthlyGoalProgress(role: Role, totalMinutes: number, auxiliaryGoalHours: 15 | 30 = 15) {
+  const targetMinutes = role === '보조 파이오니아' ? auxiliaryGoalHours * 60 : role === '정규 파이오니아' ? 50 * 60 : 0;
+  if (!targetMinutes) return null;
+  return { targetMinutes, remainingMinutes: Math.max(0, targetMinutes - totalMinutes), percent: Math.round(totalMinutes / targetMinutes * 1000) / 10, achieved: totalMinutes >= targetMinutes };
 }
