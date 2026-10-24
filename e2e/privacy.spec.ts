@@ -16,5 +16,5 @@ test('휴대폰에서 탭해 읽을 수 있고 화면 밖으로 넘치지 않는
  await page.goto('http://127.0.0.1:5174/');await page.getByRole('button',{name:'개인정보와 열람 권한 안내'}).tap();
  const panel=page.getByRole('region',{name:'개인정보와 열람 권한',exact:true});await expect(panel).toBeVisible();
  const box=await panel.boundingBox();expect(box!.x).toBeGreaterThanOrEqual(0);expect(box!.x+box!.width).toBeLessThanOrEqual(360);
- await expect(panel).toContainText('사이트 개발자·DB 관리자');await page.locator('.breadcrumb').tap();await expect(panel).not.toBeVisible();await context.close();
+ await expect(panel).toContainText('사이트 개발자');await page.locator('.breadcrumb').tap();await expect(panel).not.toBeVisible();await context.close();
 });
