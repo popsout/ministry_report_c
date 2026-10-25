@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
 
 // Each shell has a related set of ember colors, without a rainbow wheel.
 const palettes = [
@@ -12,7 +11,7 @@ type Point = { x:number; y:number };
 type Spark = Point & { vx:number; vy:number; life:number; color:string; size:number; shimmer:number; trail:Point[] };
 type Rocket = { start:Point; target:Point; age:number; duration:number; palette:string[]; trail:Point[] };
 
-export default function FullscreenFireworks({ onStop }: { onStop: () => void }) {
+export default function FullscreenFireworks() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -103,6 +102,5 @@ export default function FullscreenFireworks({ onStop }: { onStop: () => void }) 
   }, []);
   return createPortal(<div className="fullscreen-fireworks" role="region" aria-label="전체 화면 축하 폭죽">
     <canvas ref={canvasRef} aria-hidden="true"/>
-    <button className="fireworks-stop" aria-label="전체 화면 폭죽 멈추기" onClick={onStop}><X size={22}/><span>폭죽 멈추기</span></button>
   </div>,document.body);
 }

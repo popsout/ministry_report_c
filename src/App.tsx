@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ArrowUpRight, BookOpen, CalendarDays, Check, ChevronLeft, ChevronRight, Clock3, DoorOpen, LayoutDashboard, Leaf, Mail, Plus, RefreshCw, Store, Trash2, X } from 'lucide-react';
 import PrivacyHelp from './components/PrivacyHelp';
 import GoalCelebration from './components/GoalCelebration';
+import FullscreenFireworks from './components/FullscreenFireworks';
 import { supabase } from './lib/supabase';
 import { useCloudJournal } from './lib/cloudJournal';
 import { JOURNAL_KEY, readJournal, writeJournal } from './lib/localJournal';
@@ -22,6 +23,8 @@ export default function App() {
   const [settings,setSettings] = useState<MonthSetting[]>(demo ? [{month:monthKey(today),role:'보조 파이오니아',updated_at:''}] : supabase ? [] : initial.data.settings);
   const [month,setMonth] = useState(new Date(today.getFullYear(),today.getMonth(),1));
   const [selected,setSelected] = useState(dateKey(today));
+  const [celebrationMonth,setCelebrationMonth] = useState<string|null>(null);
+  useEffect(()=>{if(!celebrationMonth)return;const timer=window.setTimeout(()=>setCelebrationMonth(null),3000);return ()=>window.clearTimeout(timer);},[celebrationMonth]);
   const [scope,setScope] = useState<'month'|'all'>('month');
   const [modal,setModal] = useState<'auth'|'day'|'entry'|null>(null);
   const [editing,setEditing] = useState<Entry|null>(null);
@@ -42,7 +45,7 @@ export default function App() {
 
   useEffect(()=>{
     if(!online)return;
-    setModal(null);setEditing(null);setNotice('');entryFromDay.current=false;
+    setModal(null);setEditing(null);setNotice('');setCelebrationMonth(null);entryFromDay.current=false;
   },[online,cloud.session?.user.id]);
   async function logout(){
     if(!supabase)return;
@@ -50,13 +53,24 @@ export default function App() {
     if(error)setNotice('로그아웃하지 못했습니다. 연결을 확인한 뒤 다시 시도해 주세요.');
   }
   async function persist(nextEntries: Entry[], nextSettings: MonthSetting[]) {
+    // Save the one-time celebration marker with the same journal revision as the record.
+    let firstAchievement:string|null=null;
+    const savedSettings=nextSettings.map(next=>{
+      const before=settings.find(item=>item.month===next.month);
+      const total=(items:Entry[])=>items.filter(item=>item.service_date.startsWith(next.month.slice(0,7))).reduce((sum,item)=>sum+item.minutes,0);
+      const wasAchieved=before && monthlyGoalProgress(before.role,total(entries),before.auxiliaryGoalHours??15)?.achieved;
+      const achieved=monthlyGoalProgress(next.role,total(nextEntries),next.auxiliaryGoalHours??15)?.achieved;
+      const celebrated=before?.goalCelebrated || next.goalCelebrated || wasAchieved;
+      if(achieved && !celebrated && next.month===monthKey(month))firstAchievement=next.month;
+      return celebrated || achieved ? {...next,goalCelebrated:true} : next;
+    });
     try {
-      if(online){setBusy(true);await cloud.save({version:1,entries:nextEntries,settings:nextSettings});}
+      if(online){setBusy(true);await cloud.save({version:1,entries:nextEntries,settings:savedSettings});}
       else if(!demo) {
         if(initial.error)throw new Error(initial.error);
-        rawRef.current=writeJournal({version:1,entries:nextEntries,settings:nextSettings},rawRef.current);
+        rawRef.current=writeJournal({version:1,entries:nextEntries,settings:savedSettings},rawRef.current);
       }
-      setEntries(nextEntries);setSettings(nextSettings);return true;
+      setEntries(nextEntries);setSettings(savedSettings);if(firstAchievement)setCelebrationMonth(firstAchievement);return true;
     } catch(error){setNotice(error instanceof Error ? error.message : '저장하지 못했습니다.');return false;}finally{setBusy(false);}
   }
   useEffect(()=>{
@@ -128,6 +142,7 @@ export default function App() {
   stops.push(`var(--tint-strong) ${chart.filledPercent}% 100%`);
   const chartLabel=(chartGoal ? `목표 ${formatTime(chartGoal.targetMinutes)}, ${formatTime(stats.total)} 봉사, ${chartGoal.percent}% 달성, 남은 시간 ${formatTime(chartGoal.remainingMinutes)}. ` : '')+stats.types.map(t=>`${t.type} ${formatTime(t.minutes)}`).join(', ');
   return <div className={`app theme-${role==='일반'?'normal':role==='보조 파이오니아'?'aux':'regular'} ${goal?.achieved?'goal-achieved':''}`}>
+    {celebrationMonth===monthKey(month) && goal?.achieved && <FullscreenFireworks/>}
     <aside className="sidebar"><a className="brand" href="#"><span className="brand-mark"><Leaf size={22}/></span>차곡<span className="brand-dot">.</span></a><span className="brand-caption">나의 작은 기록, 소중한 시간</span><div className="nav-label">MY WORKSPACE</div><a className="nav-item active" href="#calendar"><LayoutDashboard size={19}/>나의 봉사 기록</a><div className="sidebar-bottom"><div className="sidebar-note"><BookOpen size={22}/><p>하루의 봉사를<br/>차곡차곡 담아보세요.</p><span>작은 기록이 모여<br/>의미 있는 여정이 됩니다.</span></div><div className="profile"><span className="avatar">나</span><div><strong>나의 기록장</strong><small>{demo?'예시 화면':online?'온라인 기록장':'이 브라우저에 저장'}</small></div><Check size={18}/></div></div></aside>
     <main><header className="topbar"><span className="breadcrumb">나의 공간 <span>/</span> 봉사 기록</span><div className="topbar-actions"><div className="account-status">{emailName && <span className="welcome-message" title={`${emailName} 님 환영합니다`} aria-live="polite">{emailName} 님 환영합니다</span>}<span className="sync"><span className={`status-dot ${connectionState}`} aria-hidden="true"/>{connectionLabel}</span></div><PrivacyHelp/></div></header>
     <div className="content"><div className="page-title"><div><h1 className="journal-title">My Ministry <span>Journal</span></h1><p>소중한 시간을 기록하고, 나의 봉사를 돌아보세요.</p></div><button className="primary" disabled={busy || (online && cloud.session!==null && !cloud.loaded)} onClick={()=>openEntry()}><Plus size={18}/>봉사 기록하기</button></div>

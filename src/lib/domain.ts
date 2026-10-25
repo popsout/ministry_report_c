@@ -2,7 +2,7 @@ export const TYPES = ['호별', '편지', '전시대'] as const;
 export type ServiceType = typeof TYPES[number];
 export type Role = '일반' | '보조 파이오니아' | '정규 파이오니아';
 export type Entry = { id: string; user_id: string; service_date: string; service_type: ServiceType; minutes: number; note: string; updated_at: string };
-export type MonthSetting = { month: string; role: Role; auxiliaryGoalHours?: 15 | 30; updated_at: string };
+export type MonthSetting = { month: string; role: Role; auxiliaryGoalHours?: 15 | 30; goalCelebrated?: boolean; updated_at: string };
 export const pad = (v: number) => String(v).padStart(2, '0');
 export function dateKey(d: Date) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
 export function monthKey(d: Date) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-01`; }
