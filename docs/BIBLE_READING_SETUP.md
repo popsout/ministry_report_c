@@ -52,3 +52,7 @@ Codex의 공개 연결 키로 DB 관리 SQL을 실행하거나 관리자 계정�
 - 아직 초기 설정을 하지 않았다면 갱신된 `private-import/bible-setup.sql`을 사용한다.
 - 이미 관리자·자료를 등록했다면 `private-import/bible-dates-update.sql` 전체를 SQL Editor에서 실행한다. 관리자 재등록이나 자료 삭제 없이 `005_bible_chronology.sql`의 새 열과 사건별 참고 연대만 추가한다.
 - 최신 연대를 오프라인에도 반영하려면 온라인에서 **이 기기에 저장**을 다시 실행한다. 기존 서가를 자동으로 삭제하거나 잠금 암호를 알아내어 갱신하지 않는다.
+
+## 제공 PDF 대조 이후의 변경
+
+현재 결과는 [PDF 1차 대조 보고서](BIBLE_PDF_REVIEW.md)를 따른다. 사건 요약 전체의 검토 상태는 여전히 초안이며, 13개 사건의 특정 사항에만 원문 대조 기록 29건을 붙였다. `chronology.basis_type=scripture`와 `reviewed=true`는 해당 성구의 재위년·배경을 확인했다는 뜻이며 출판물의 절대연도까지 확인했다는 뜻이 아니다. 미검증 연대는 주 화면에서 보류한다. 정정된 책 이름과 왕명, 원문 근거를 적용하려면 `private-import/bible-verification-update.sql`을 사용한다. 기존 연대 업데이트 파일과 초기 설정 파일도 같은 최신 자료로 갱신했다.
