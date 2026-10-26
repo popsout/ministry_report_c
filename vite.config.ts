@@ -11,7 +11,7 @@ export default defineConfig(({mode})=>{
     if(url.protocol!=='https:' || url.username || url.password)throw new Error('Use a valid HTTPS Supabase project URL');
     connections+=` ${url.origin} wss://${url.host}`;
   }
-  const csp=`default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src ${connections}; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'`;
+  const csp=`default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src ${connections}; worker-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'`;
   const offlineShell:Plugin={name:'offline-shell',apply:'build',generateBundle(_options,bundle){
     if(mode==='device')return;
     const buildId=createHash('sha256').update(Object.keys(bundle).sort().join('|')).digest('hex').slice(0,12);
