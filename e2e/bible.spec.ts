@@ -34,6 +34,12 @@ test.describe('관리자 성경 읽기 - 모의 서버',()=>{
   await page.getByRole('button',{name:'서가 잠그기'}).click();await expect(page.getByText(event.summary)).toHaveCount(0);
   await context.setOffline(false);
  });
+ test('서버 설정이 없으면 자료를 숨기고 로그인한 본인 UID만 안내한다',async({context,page})=>{
+  await mock(context);await context.route('**/rest/v1/rpc/is_bible_admin',r=>r.fulfill({status:404,json:{code:'PGRST202',message:'missing'}}));
+  await login(page);await expect(page.getByRole('heading',{name:'성경 읽기 기능을 준비하고 있어요'})).toBeVisible();
+  await expect(page.locator('.bible-setup-next code')).toHaveText('11111111-1111-4111-8111-111111111111');
+  await expect(page.locator('.era-card')).toHaveCount(0);await expect(page.getByText(event.summary)).toHaveCount(0);
+ });
  test('계산한 연대는 출판물의 직접 표기와 구분한다',async({context,page})=>{
   await mock(context);await context.route('**/rest/v1/bible_reading_events**',r=>r.fulfill({json:[{...event,chronology:{...event.chronology,label:'연수 계산 결과',basis_type:'calculation'}}]}));
   await login(page);await page.getByRole('button',{name:/통일 왕국/}).click();

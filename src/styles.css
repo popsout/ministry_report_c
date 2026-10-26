@@ -114,3 +114,5 @@
 .pdf-check{padding:15px 0;border-bottom:1px solid #ece5f2}.pdf-check:last-child{border:0}.pdf-check strong{display:block;color:#554261}.pdf-check small{display:block;margin-top:4px;font-size:10px;color:#7d6b8d}.pdf-check .pdf-check-limit{color:#806745;font-size:10px}
 
 .bible-heading .bible-independent{font-size:10px;color:#796987;margin-top:10px;line-height:1.9;max-width:620px}
+
+.bible-setup-next{max-width:480px;padding:15px;border:1px solid #e8dcef;border-radius:9px;background:#faf7fc;text-align:left;font-size:12px;line-height:1.9}.bible-setup-next p{margin:0 0 12px;color:#6e5d7b}.bible-setup-next code{display:block;font-size:11px;overflow-wrap:anywhere;user-select:all;color:#5f427b}
