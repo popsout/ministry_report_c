@@ -1,7 +1,7 @@
 /* Cache only the public application shell. Never store authenticated API responses. */
 const scope=new URL(self.registration.scope);
 const PREFIX='chagok-shell:'+scope.pathname+':';
-const CACHE=PREFIX+'ed4d27c2bf60';
+const CACHE=PREFIX+'e310a4a33c65';
 const withinScope=url=>url.origin===scope.origin && url.pathname.startsWith(scope.pathname);
 self.addEventListener('install',event=>{event.waitUntil((async()=>{
  const response=await fetch(new URL('index.html',scope),{cache:'reload'});
