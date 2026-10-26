@@ -11,6 +11,8 @@ test.describe('관리자 성경 읽기 - 모의 서버',()=>{
   await page.setViewportSize({width:360,height:800});await mock(context);await login(page);
   await page.getByRole('button',{name:/통일 왕국/}).click();
   await expect(page.getByRole('heading',{name:event.title})).toBeVisible();
+  await expect(page.locator('.event-date')).toContainText('기원전 11세기경(추정)');
+  await page.getByText('연대의 근거와 확실성',{exact:true}).click();await expect(page.locator('.chronology-source')).toContainText('열왕기상 6:1');
   await expect(page.getByLabel('당시 나라와 통치자')).toContainText('솔로몬');await expect(page.locator('.passage-list')).toContainText('역대기하 2–7장');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.getByRole('button',{name:'이 기기에 저장',exact:true}).click();
