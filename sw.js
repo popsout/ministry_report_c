@@ -1,7 +1,7 @@
 /* Cache only the public application shell. Never store authenticated API responses. */
 const scope=new URL(self.registration.scope);
 const PREFIX='chagok-shell:'+scope.pathname+':';
-const CACHE=PREFIX+'b6f4fa858fc2';
+const CACHE=PREFIX+'4d9db2307b3f';
 const withinScope=url=>url.origin===scope.origin && url.pathname.startsWith(scope.pathname);
 self.addEventListener('install',event=>{event.waitUntil((async()=>{
  const response=await fetch(new URL('index.html',scope),{cache:'reload'});
@@ -11,6 +11,7 @@ self.addEventListener('install',event=>{event.waitUntil((async()=>{
  const cache=await caches.open(CACHE);
  for(const url of files){if(withinScope(url) && url.pathname.startsWith(scope.pathname+'assets/'))await cache.add(url);}
  await cache.put(new URL('index.html',scope),response);
+ await self.skipWaiting(); // Activate only after the complete new public shell is cached; never force a page reload.
 })());});
 self.addEventListener('activate',event=>event.waitUntil((async()=>{
  for(const name of await caches.keys())if(name.startsWith(PREFIX) && name!==CACHE)await caches.delete(name);
