@@ -11,7 +11,7 @@ export default function BibleReadingContent({events:visibleEvents,connected,navi
  useEffect(()=>{if(selected && window.matchMedia('(max-width:760px)').matches){detailRef.current?.scrollIntoView({block:'start'});detailRef.current?.focus({preventScroll:true});}},[selected?.id]);
  function selectEvent(event:BibleEvent){onNavigate({era:event.era_id,eventId:event.id});}
  return <>
-   <p className="bible-draft">편집 초안 · 성구를 연결한 요약입니다. 여호와의 증인 신세계역과 공식 자료를 기준으로 내용 검증 중입니다. 전체 검증 완료본은 아닙니다. 일부 항목은 제공 PDF 본문과 대조했으며, 절대연대·불확실한 배치는 추가 출판물 검증이 필요합니다.  신세계역 본문은 아직 수록하지 않았습니다. 추정 배치와 기간이 겹치는 기록은 안내를 함께 표시합니다.</p>
+   <details className="bible-draft"><summary>검증 중인 요약 · 성경 본문 미수록</summary><p>편집 초안 · 성구를 연결한 요약입니다. 여호와의 증인 신세계역과 공식 자료를 기준으로 내용 검증 중입니다. 전체 검증 완료본은 아닙니다. 일부 항목은 제공 PDF 본문과 대조했으며, 절대연대·불확실한 배치는 추가 출판물 검증이 필요합니다.  신세계역 본문은 아직 수록하지 않았습니다. 추정 배치와 기간이 겹치는 기록은 안내를 함께 표시합니다.</p></details>
    {!connected && <p className="bible-offline"><WifiOff size={15}/>저장된 요약을 읽고 있습니다. 외부 성구 링크는 온라인에서 열 수 있습니다. 화면을 떠나면 서가가 잠깁니다.</p>}
    {!visibleEvents.length && <p className="empty-state">등록된 사건 자료가 없습니다.</p>}
    {!era || !selected ? <div className="era-grid">{eras.map(item=>{const rows=visibleEvents.filter(e=>e.era_id===item.id);return <button className="era-card" key={item.id} onClick={()=>selectEvent(rows[0])}><span className="era-number">{String(item.order).padStart(2,'0')}</span><h2>{item.title}</h2><p>{rows.slice(0,3).map(e=>e.title).join(' · ')}</p><span>{rows.length}개 사건 <ChevronRight size={16}/></span></button>;})}</div>:<>
