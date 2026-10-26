@@ -13,7 +13,7 @@ test.describe('관리자 성경 읽기 - 모의 서버',()=>{
   await expect(page.getByRole('heading',{name:event.title})).toBeVisible();
   await expect(page.locator('.event-date')).toContainText('솔로몬 제4년 착공');
   await expect(page.locator('.event-date')).toContainText('PDF 성구 대조');
-  await page.getByText('PDF 원문 대조 기록 (1건)',{exact:true}).click();await expect(page.locator('.pdf-check')).toContainText('인쇄 474쪽');await expect(page.locator('.pdf-check')).toContainText('절대연도는 확인하지 않음');
+  await page.getByText('PDF 원문 대조 기록 (1건)',{exact:true}).click();await expect(page.locator('.pdf-check')).toContainText('전체 PDF 474쪽');await expect(page.locator('.pdf-check')).toContainText('절대연도는 확인하지 않음');
   await page.getByText('연대의 근거와 확실성',{exact:true}).click();await expect(page.locator('.chronology-source').filter({has:page.getByText('연대의 근거와 확실성',{exact:true})})).toContainText('열왕기상 6:1');
   await expect(page.getByLabel('당시 나라와 통치자')).toContainText('솔로몬');await expect(page.locator('.passage-list')).toContainText('역대기하 2–7장');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
@@ -33,6 +33,12 @@ test.describe('관리자 성경 읽기 - 모의 서버',()=>{
   await expect(page.locator('.passage-list a')).toHaveCount(0);
   await page.getByRole('button',{name:'서가 잠그기'}).click();await expect(page.getByText(event.summary)).toHaveCount(0);
   await context.setOffline(false);
+ });
+ test('계산한 연대는 출판물의 직접 표기와 구분한다',async({context,page})=>{
+  await mock(context);await context.route('**/rest/v1/bible_reading_events**',r=>r.fulfill({json:[{...event,chronology:{...event.chronology,label:'연수 계산 결과',basis_type:'calculation'}}]}));
+  await login(page);await page.getByRole('button',{name:/통일 왕국/}).click();
+  await expect(page.locator('.event-date')).toContainText('근거 대조·연수 계산');
+  await page.getByText('연대의 근거와 확실성',{exact:true}).click();await expect(page.locator('.chronology-source').filter({has:page.getByText('연대의 근거와 확실성',{exact:true})})).toContainText('출처에 같은 결과값이 직접 적혀 있다는 뜻은 아니며');
  });
  test('로그아웃하면 서가도 삭제하고 화면을 잠근다',async({context,page})=>{
   await page.setViewportSize({width:390,height:844});

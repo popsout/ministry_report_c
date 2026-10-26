@@ -21,3 +21,8 @@ it('미검증 숫자는 주 표시에서 보류하고 원문 대조한 재위년
  expect(chronologyLabel(parseBibleEvents([{...row,chronology:{...row.chronology,label:'왕 제4년',precision:'relative',basis_type:'scripture',reviewed:true}}])[0])).toBe('왕 제4년');
  expect(()=>parseBibleEvents([{...row,source_checks:[{page:-1}]}])).toThrow('출처 대조');
 });
+it('출판물의 직접 표기와 본문 연수 계산을 구분해 저장한다',()=>{
+ const row={id:'x',era_id:'x',era_title:'시대',era_order:1,event_order:1,title:'사건',summary:'요약',placement_note:'',review_status:'draft',rulers:[],passages:[],prophets:[],related_books:[],chronology:{label:'연수 계산 결과',precision:'approximate',basis:'기준 연도에서 성구의 연수를 계산',references:['근거'],reviewed:true,basis_type:'calculation'}};
+ expect(parseBibleEvents([row])[0].chronology?.basis_type).toBe('calculation');
+ expect(()=>parseBibleEvents([{...row,chronology:{...row.chronology,basis_type:'model-memory'}}])).toThrow('연대 자료');
+});

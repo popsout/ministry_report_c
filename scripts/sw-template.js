@@ -11,6 +11,7 @@ self.addEventListener('install',event=>{event.waitUntil((async()=>{
  const cache=await caches.open(CACHE);
  for(const url of files){if(withinScope(url) && url.pathname.startsWith(scope.pathname+'assets/'))await cache.add(url);}
  await cache.put(new URL('index.html',scope),response);
+ await self.skipWaiting(); // Activate only after the complete new public shell is cached; never force a page reload.
 })());});
 self.addEventListener('activate',event=>event.waitUntil((async()=>{
  for(const name of await caches.keys())if(name.startsWith(PREFIX) && name!==CACHE)await caches.delete(name);
