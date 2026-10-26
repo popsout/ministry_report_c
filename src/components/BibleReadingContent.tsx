@@ -20,7 +20,7 @@ export default function BibleReadingContent({events:visibleEvents,connected,navi
      <article ref={detailRef} tabIndex={-1} className="bible-event panel" aria-labelledby="event-title"><span className="bible-eyebrow">{selected.era_title}</span><h2 id="event-title">{selected.title}</h2><div className="event-date"><span>{chronologyLabel(selected)}</span>{selected.chronology && <small>{!selected.chronology.reviewed?'근거 확인 대기':selected.chronology.basis_type==='scripture'?'PDF 성구 대조':selected.chronology.basis_type==='calculation'?'근거 대조·연수 계산':'출판물 대조'}</small>}</div>
       {selected.rulers.length>0 && <div className="ruler-list" aria-label="당시 나라와 통치자">{selected.rulers.map((r,i)=><div key={i}><Crown size={16}/><span><small>{r.nation}</small><strong>{r.name}</strong>{r.note && <small>{r.note}</small>}</span></div>)}</div>}
       {selected.prophets.length>0 && <p className="bible-prophets">관련 예언자 · {selected.prophets.join(' · ')}</p>}
-      <p className="event-summary">{selected.summary}</p>
+      <div className="event-summary">{selected.summary.split(/\n\s*\n/).map((paragraph,index)=><p key={index}>{paragraph}</p>)}</div>
       {selected.placement_note && <aside className="placement-note"><strong>배치·연대 안내</strong><p>{selected.placement_note}</p></aside>}
       <h3>이 사건을 함께 전하는 기록</h3><div className="passage-list">{selected.passages.map((p,i)=><div key={i}><BookOpen size={17}/><div><strong>{p.reference}</strong><p>{p.note}</p></div>{connected?<a href={scriptureLink(p.reference)} target="_blank" rel="noopener noreferrer" aria-label={`${p.reference} 공식 라이브러리에서 찾기`}><ExternalLink size={16}/></a>:<WifiOff size={15}/>}</div>)}</div>
       {selected.related_books.length>0 && <p className="related-books">함께 살펴볼 책 · {selected.related_books.join(' · ')}</p>}
