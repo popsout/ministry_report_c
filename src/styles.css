@@ -119,3 +119,6 @@
 
 /* Reading copy stays legible independently of the compact journal controls. */
 .bible-reader .text-button{font-size:14px;line-height:1.6;min-height:44px}.bible-reader details>summary{min-height:24px;line-height:1.8}.bible-draft summary{cursor:pointer;font-weight:600;color:#604a33}.bible-draft p{margin:12px 0 0}.bible-event{min-width:0;overflow-wrap:anywhere}.bible-event p{word-break:keep-all;overflow-wrap:anywhere}.bible-events button{min-height:48px}.bible-events .event-list-copy{flex-shrink:1}.passage-list a{width:44px;height:44px}.bible-reader .event-pagination{gap:12px}.bible-reader .event-pagination button{white-space:normal;text-align:left}.bible-reader .pdf-check strong{line-height:1.8}
+
+/* Keep each preview title together; only oversized titles wrap within themselves. */
+.era-card .era-preview{display:flex;flex-wrap:wrap;column-gap:.6em;row-gap:2px}.era-preview-title{display:block;flex:0 0 auto;max-width:100%;word-break:keep-all;overflow-wrap:anywhere}.era-preview-title:not(:first-child)::before{content:"·";margin-right:.6em}
