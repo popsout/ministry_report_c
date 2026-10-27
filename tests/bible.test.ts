@@ -26,3 +26,9 @@ it('출판물의 직접 표기와 본문 연수 계산을 구분해 저장한다
  expect(parseBibleEvents([row])[0].chronology?.basis_type).toBe('calculation');
  expect(()=>parseBibleEvents([{...row,chronology:{...row.chronology,basis_type:'model-memory'}}])).toThrow('연대 자료');
 });
+it('공식 출판물 링크만 허용하고 이전 성구 자료도 그대로 읽는다',()=>{
+ const row={id:'a',era_id:'era',era_title:'시대',era_order:1,event_order:1,title:'사건',summary:'요약',placement_note:'',review_status:'draft',rulers:[],passages:[{reference:'공식 해설',note:'근거',url:'https://wol.jw.org/ko/wol/d/r8/lp-ko/1200002861#p5'}],prophets:[],related_books:[]};
+ expect(parseBibleEvents([row])[0].passages[0].url).toBe(row.passages[0].url);
+ for(const url of ['javascript:alert(1)','https://example.com/','https://wol.jw.org.evil.test/ko/wol/d/r8/lp-ko/1','https://user:secret@wol.jw.org/ko/wol/d/r8/lp-ko/1','//wol.jw.org/ko/wol/d/r8/lp-ko/1'])expect(()=>parseBibleEvents([{...row,passages:[{...row.passages[0],url}]}])).toThrow('자료 형식');
+ expect(parseBibleEvents([{...row,passages:[{reference:'창세기 1장',note:'이전 자료'}]}])[0].passages[0].url).toBeUndefined();
+});
