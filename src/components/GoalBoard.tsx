@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Target } from 'lucide-react';
+import { RefreshCw, Target } from 'lucide-react';
 import { boardProgress, emptyBoard, GOAL_KEY, parseBoard, type GoalBoard as Board, type Rating } from '../lib/goalBoard';
 import { dateKey } from '../lib/domain';
 import JourneyScene from './JourneyScene';
@@ -56,9 +56,9 @@ export default function GoalBoard({ storageKey = GOAL_KEY, preview = false, clou
   const messages = encouragementPool(board.ratings[date], position === board.days);
   const encouragementText = messages[(Number(date.replaceAll('-', '')) + count + position + encouragementIndex) % messages.length];
   return <div className="personal-goals">
-    <div className="page-title"><div><span className="goal-eyebrow">ONE DAY, ONE STEP</span><h1>나의 목표 보드</h1><p>오늘의 선택을 기록하고, 나만의 깃발을 앞으로.</p></div><Target size={34} /></div>
+    <div className="page-title"><div><span className="goal-eyebrow">ONE DAY, ONE STEP</span><div className="goal-title-line"><h1>나의 목표 보드</h1>{online && <button className="icon-button goal-refresh" aria-label="온라인 목표 새로고침" title="온라인 새로고침" disabled={saving} onClick={()=>void cloud!.load()}><RefreshCw size={19}/></button>}</div><p>오늘의 선택을 기록하고, 나만의 깃발을 앞으로.</p></div><Target size={34} /></div>
     <section className="panel encouragement-card" aria-label="오늘의 격려"><div><span className="goal-eyebrow">MAKE YOUR NEXT MEAL COUNT</span><h2>다음 한 끼, 계획대로 실천하세요</h2><p aria-live="polite">{encouragementText}</p></div><button className="text-button" onClick={()=>setEncouragementIndex(index=>index+1)}>다른 격려 보기 →</button></section>
-    <p className="connection-banner">{preview ? '예시 화면 · 연습한 목표는 저장되지 않습니다.' : online ? (ready ? '같은 계정으로 로그인한 기기에서 목표·식단 평가·주간 체중을 공유합니다.' : '온라인 목표를 불러오는 중입니다.') : '지금은 이 브라우저에 저장합니다. 로그인하면 다른 기기와 목표를 공유할 수 있습니다.'}{cloud && !preview && (!online ? <button onClick={onLogin}>로그인하고 동기화</button> : <button disabled={saving} onClick={()=>void cloud.load()}>온라인 목표 새로고침</button>)}</p>
+    {(!online || !ready) && <p className="connection-banner">{preview ? '예시 화면 · 연습한 목표는 저장되지 않습니다.' : online ? '온라인 목표를 불러오는 중입니다.' : '지금은 이 브라우저에 저장합니다. 로그인하면 다른 기기와 목표를 공유할 수 있습니다.'}{cloud && !preview && !online && <button onClick={onLogin}>로그인하고 동기화</button>}</p>}
     <section className="panel journey-panel" aria-label="목표 진행 보드"><div className="journey-heading"><div><span className="goal-eyebrow">MY JOURNEY</span><h2>{board.title}</h2></div><strong data-testid="goal-position">{position} / {board.days}칸</strong></div>
       <div className="journey-status" role="status">{position === board.days ? '목표 도착! 꾸준한 선택이 결실을 맺었어요.' : `목표까지 ${board.days - position}칸 · ${count}일 평가`}</div>
       <JourneyScene days={board.days} position={position} />

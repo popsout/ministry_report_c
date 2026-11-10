@@ -25,7 +25,8 @@ test('separate devices sync goals, preserve service data, reject stale writes, m
   const d=page.getByRole('dialog');await d.locator('input[name=email]').fill(user.email);await d.locator('input[name=password]').fill('test-password');
   await d.getByRole('button',{name:'로그인',exact:true}).click();
   await expect(page.getByRole('button',{name:'목표 설정 저장'})).toBeEnabled();
-  await expect(page.locator('.connection-banner')).toContainText('목표·식단 평가·주간 체중을 공유');
+  await expect(page.locator('.goal-title-line').getByRole('button',{name:'온라인 목표 새로고침'})).toBeVisible();
+  await expect(page.getByText('같은 계정으로 로그인한 기기에서 목표·식단 평가·주간 체중을 공유합니다.',{exact:true})).toHaveCount(0);
  }
  const a=await browser.newContext(),b=await browser.newContext();
  try{
