@@ -11,7 +11,7 @@ test('보조 목표 전환과 정규 50시간이 월 합계로 계산된다',asy
  await page.getByRole('combobox',{name:'이 달의 파이오니아 신분'}).selectOption('일반');await expect(summary).toHaveCount(0);
 });
 test('보조 목표를 월별로 저장하고 초기화 후에도 유지한다',async({page})=>{
- await page.goto('/');const role=page.getByRole('combobox',{name:'이 달의 파이오니아 신분'});
+ await page.goto('/#calendar');const role=page.getByRole('combobox',{name:'이 달의 파이오니아 신분'});
  await role.selectOption('보조 파이오니아');page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'30시간',exact:true}).click();await page.reload();
  await expect(page.getByRole('button',{name:'30시간',exact:true})).toHaveAttribute('aria-pressed','true');
  await page.getByRole('button',{name:'다음 달',exact:true}).click();await role.selectOption('보조 파이오니아');
@@ -66,7 +66,7 @@ test('최초 목표 달성에서 3초만 재생하며 새로고침과 재달성�
   if(localStorage.getItem('chagok.journal.v1'))return;
   localStorage.setItem('chagok.journal.v1',JSON.stringify({version:1,settings:[{month:'2026-11-01',role:'보조 파이오니아',updated_at:''}],entries:[1,2].map(day=>({id:String(day),user_id:'local',service_date:`2026-11-0${day}`,service_type:'호별',minutes:420,note:'',updated_at:''}))}));
  });
- await page.goto('/');const effect=page.getByRole('region',{name:'전체 화면 축하 폭죽'});
+ await page.goto('/#calendar');const effect=page.getByRole('region',{name:'전체 화면 축하 폭죽'});
  await expect(effect).toHaveCount(0);
  await page.getByRole('button',{name:'봉사 기록하기',exact:true}).click();await page.getByRole('button',{name:'기록 저장',exact:true}).click();
  await expect(effect).toBeVisible();await expect(effect).toHaveCount(0,{timeout:4500});

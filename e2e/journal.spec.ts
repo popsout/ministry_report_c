@@ -12,7 +12,7 @@ test('월별 신분은 다른 월과 독립적으로 유지된다',async({page})
  await expect(role).toHaveValue('정규 파이오니아');
 });
 test('선택식 기록의 생성, 수정, 삭제와 통계가 동작한다',async({page})=>{
- await page.goto('/?preview=1');
+ await page.goto('/#calendar');
  await page.getByRole('button',{name:'봉사 기록하기',exact:true}).click();
  const dialog=page.getByRole('dialog');
  await dialog.locator('input[name=date]').fill('2026-11-05');

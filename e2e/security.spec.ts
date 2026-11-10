@@ -17,13 +17,13 @@ async function mockAuth(context:BrowserContext,onPassword?:(url:string,body:Reco
  });
 }
 async function login(page:Page,password='Unique-app-test-password!'){
- await page.goto('/?cloud=1');await page.getByRole('button',{name:'로그인',exact:true}).click();
+ await page.goto('/?cloud=1#calendar');await page.getByRole('button',{name:'로그인',exact:true}).click();
  const d=page.getByRole('dialog');await d.locator('input[name=email]').fill(user.email);await d.locator('input[name=password]').fill(password);
  await d.getByRole('button',{name:'로그인',exact:true}).click();await expect(page.getByRole('button',{name:'로그아웃',exact:true})).toBeVisible();
 }
 test('단일 HTML의 CSP는 삽입 스크립트를 차단하고 메모를 HTML로 실행하지 않는다',async({page})=>{
  await page.route('**/secured.html',route=>route.fulfill({contentType:'text/html',body:readFileSync(resolve('release/chagok.html'),'utf8')}));
- await page.goto('/secured.html');await expect(page.getByRole('heading',{level:1})).toHaveText('My Ministry Journal');
+ await page.goto('/secured.html#calendar');await expect(page.getByRole('heading',{level:1})).toHaveText('My Ministry Journal');
  await page.evaluate(()=>{
   const s=document.createElement('script');s.textContent='window.__injected=true';document.head.append(s);
  });
@@ -57,7 +57,7 @@ test.describe('인증 보안 - 모의 서버',()=>{
   });
   const pc=await context.newPage();await login(pc);
   await expect(pc.locator('.summary-card').first()).toContainText('2시간');
-  const other=await context.newPage();await other.goto('/?cloud=1');await expect(other.getByRole('button',{name:'로그아웃',exact:true})).toBeVisible();
+  const other=await context.newPage();await other.goto('/?cloud=1#calendar');await expect(other.getByRole('button',{name:'로그아웃',exact:true})).toBeVisible();
   await pc.locator('.day[aria-pressed=true]').click();await pc.locator('.entry-row').click();
   await pc.getByRole('button',{name:'기록 저장',exact:true}).click();await waiting;
   await other.getByRole('button',{name:'로그아웃',exact:true}).click();
@@ -66,7 +66,7 @@ test.describe('인증 보안 - 모의 서버',()=>{
   await expect(pc.locator('.summary-card').first()).toContainText('0시간');await expect(pc.locator('body')).not.toContainText('private-test-note');
  });
  test('가입 화면에서 구글 비밀번호와 다른 새 비밀번호임을 명시한다',async({page,context})=>{
-  await mockAuth(context);await page.goto('/?cloud=1');await page.getByRole('button',{name:'로그인',exact:true}).click();
+  await mockAuth(context);await page.goto('/?cloud=1#calendar');await page.getByRole('button',{name:'로그인',exact:true}).click();
   const d=page.getByRole('dialog');await expect(d).toContainText('구글 비밀번호 대신');await d.getByRole('button',{name:'처음이라면 계정 만들기'}).click();
   await expect(d.locator('input[name=password]')).toHaveAttribute('autocomplete','new-password');await expect(d.locator('input[name=password]')).toHaveAttribute('minlength','8');
   await expect(d.locator('input[name=passwordConfirm]')).toBeVisible();

@@ -16,7 +16,7 @@ for(const palette of palettes)test(`${palette.role}에서도 도넛·범례·달
  await expect(page.locator('.legend-dot').first()).toHaveCSS('background-color',palette.colors[0]);
 });
 test('월별 배경 테마는 바뀌어도 봉사별 색상은 유지된다',async({page})=>{
- await page.goto('/');
+ await page.goto('/#calendar');
  const role=page.getByRole('combobox',{name:'이 달의 파이오니아 신분'});
  await role.selectOption('정규 파이오니아');await page.reload();
  await expect(page.locator('.legend-dot').first()).toHaveCSS('background-color',palettes[2].colors[0]);
