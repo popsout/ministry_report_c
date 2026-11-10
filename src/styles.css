@@ -134,3 +134,5 @@
 @media(prefers-reduced-motion:reduce){.journey-traveler{transition:none}}
 
 .personal-goals .encouragement-card{display:flex;gap:20px;align-items:center;justify-content:space-between;background:linear-gradient(115deg,#f8f1fd,#fff9ed);border-color:#e7d8ed}.encouragement-card h2{font-size:20px}.encouragement-card p{font-size:16px;line-height:1.9;color:#61436e;max-width:65ch;margin:0;word-break:keep-all}.encouragement-card button{flex-shrink:0;min-height:44px}@media(max-width:760px){.personal-goals .encouragement-card{align-items:start;flex-direction:column;gap:12px}.encouragement-card p{font-size:15px}}
+
+.goal-import{margin:-8px 0 18px}.goal-import small{display:block;line-height:1.7;color:#776780}.personal-goals .connection-banner{display:flex;flex-wrap:wrap;gap:12px}

@@ -11,13 +11,17 @@
 
 ## 저장과 보존
 
-목표는 **현재 브라우저의 localStorage**에만 저장하며 기기 간 동기화하지 않습니다. 기본 키는 `chagok.goals.v1`이고, 온라인 봉사 계정으로 로그인한 경우 `.사용자UUID`를 붙여 브라우저 내 계정별로 분리합니다. 로그인 전 목표와 로그인 후 목표는 서로 별도이며 자동 병합하지 않습니다. 예시 모드에서는 영구 저장하지 않습니다. 브라우저 데이터를 삭제하면 목표 기록도 사라집니다.
+온라인 모드에서는 **같은 Supabase 계정으로 로그인한 기기끼리 목표 이름·수행일 수·날짜별 평가를 공유**합니다. 기존 `personal_journals.document`의 선택 항목 `goals`로 저장합니다. 기존 봉사 문서(목표 항목 없음)도 그대로 읽으며, 목표 저장은 봉사 기록·설정·알 수 없는 문서 항목을 보존하고 봉사 저장은 목표를 보존합니다. 목표와 봉사는 문서의 동일한 revision을 사용해 동시 수정 충돌을 차단합니다. 충돌 시 저장 실패를 표시하고 온라인 새로고침 후 다시 평가할 수 있습니다.
 
-기존 봉사 기록 키 `chagok.journal.v1`, Supabase `personal_journals`, 이전 봉사 테이블, 인증 설정과 RLS 정책은 변경하지 않습니다. 새 테이블이나 운영 DB 마이그레이션이 필요하지 않습니다. 목표 저장 시 손상된 기존 데이터와 다른 탭에서 변경된 데이터의 자동 덮어쓰기를 차단합니다.
+실시간 구독, 화면 복귀·네트워크 복구 시 재조회, 15초 주기 재조회와 ‘온라인 목표 새로고침’을 사용합니다. 온라인 저장 실패 시 로컬 저장 성공으로 대신 처리하지 않습니다. 서버 인증·RLS 정책·기존 봉사 테이블은 변경하지 않으며 DB 마이그레이션도 필요하지 않습니다. 타이머 실행 상태는 해당 기기에서만 유지됩니다.
+
+로그인하지 않았거나 한 기기 모드인 경우 기존 `chagok.goals.v1` 로컬 기록을 사용합니다. 이전 온라인 화면에서 로컬 저장한 `.사용자UUID` 키도 보존합니다. 로그인 후 ‘이 기기의 이전 목표 기록 가져오기’를 누르면 계정 키 우선, 없으면 기본 키의 기록을 가져옵니다. 온라인 목표가 이미 있다면 온라인 목표 설정과 겹치는 날짜의 온라인 평가를 유지하고 없는 날짜만 추가합니다. 온라인 목표가 없으면 로컬 목표 전체를 가져옵니다. 가져오기 후에도 로컬 원본은 삭제하지 않습니다. 예시 화면은 계정·실제 기록과 분리됩니다.
+
+다른 기기도 최신 화면으로 새로고침한 뒤 사용해야 합니다. 목표 동기화 이전 버전은 문서에 목표 항목을 보존하지 못할 수 있습니다.
 
 ## 검증
 
-`npm test`, `npm run build`, `CHROMIUM_PATH=/usr/bin/chromium npx playwright test e2e/personal-goals.spec.ts e2e/local.spec.ts e2e/journal.spec.ts e2e/goals.spec.ts e2e/reset.spec.ts`
+`npm test`, `npm run build`, `CHROMIUM_PATH=/usr/bin/chromium npx playwright test e2e/goal-sync.spec.ts e2e/cloud.spec.ts e2e/personal-goals.spec.ts e2e/local.spec.ts e2e/journal.spec.ts e2e/goals.spec.ts e2e/reset.spec.ts`
 
 기존 봉사 테스트는 새 첫 화면 도입에 맞춰 `#calendar`로 진입합니다. 운영 배포는 별도 단계입니다.
 
