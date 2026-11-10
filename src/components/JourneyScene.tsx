@@ -13,19 +13,7 @@ export default function JourneyScene({ days, position }: { days: number; positio
       <div className="journey-destination" aria-hidden="true"><svg viewBox="0 0 50 88"><path d="M11 82V6" stroke="#685177" strokeWidth="4" strokeLinecap="round"/><path d="M13 7h32v28H13Z" fill="#fff9ed"/><path d="M13 7h8v7h-8zm16 0h8v7h-8zm8 7h8v7h-8zm-16 0h8v7h-8zm-8 7h8v7h-8zm16 0h8v7h-8zm8 7h8v7h-8zm-16 0h8v7h-8z" fill="#79558b"/><ellipse cx="16" cy="83" rx="14" ry="4" fill="#719a7d"/></svg></div>
       <div className="journey-traveler" style={{ left: `${position / days * 100}%` }} role="img" aria-label={`깃발 캐릭터: ${position === 0 ? '왼쪽 START' : position === days ? '오른쪽 목표 도착' : `${position}칸 위치`}`}>
         <span className="traveler-caption">{position === days ? '해냈다!' : '나의 한 걸음'}</span>
-        <svg viewBox="0 0 84 105" aria-hidden="true">
-          <ellipse cx="40" cy="99" rx="28" ry="5" fill="#47634b" opacity=".18"/>
-          <path d="M31 79l-6 16m23-16 9 15" stroke="#59436c" strokeWidth="8" strokeLinecap="round"/>
-          <path d="M30 55q-10 7-14 16m33-12 15 3" fill="none" stroke="#59436c" strokeWidth="7" strokeLinecap="round"/>
-          <path d="M22 54q18-13 34 0l1 25q-17 12-34 0Z" fill="#8d69a8"/>
-          <circle cx="39" cy="34" r="22" fill="#fff6e6" stroke="#59436c" strokeWidth="3"/>
-          <path d="M19 26q19-21 39 0" fill="#59436c"/>
-          <circle cx="32" cy="35" r="2.1" fill="#59436c"/><circle cx="46" cy="35" r="2.1" fill="#59436c"/>
-          <path d="M34 43q5 5 10 0" fill="none" stroke="#59436c" strokeWidth="2" strokeLinecap="round"/>
-          <circle cx="27" cy="41" r="3" fill="#eeb9aa"/><circle cx="51" cy="41" r="3" fill="#eeb9aa"/>
-          <path d="M66 75V7" stroke="#59436c" strokeWidth="3" strokeLinecap="round"/><path d="M68 8h15l-5 10 5 9H68Z" fill="#dc9670"/>
-          <path d="M35 60h8v8h-8Z" fill="#e8d8f3"/>
-        </svg>
+        <img src={import.meta.env.BASE_URL + 'characters/flag-bear.png'} alt="" draggable={false} />
       </div>
       <ol className="journey-cells" aria-label="왼쪽 START부터 오른쪽 목표까지">
         {Array.from({ length: days + 1 }, (_, step) => <li key={step} data-step={step} className={`${step === 0 ? 'start-cell' : ''} ${step <= position ? 'passed' : ''} ${step === position ? 'current' : ''}`} aria-current={step === position ? 'step' : undefined} aria-label={step === 0 ? 'START' : `${step}칸${step === days ? ', 목표' : ''}`}><span className="journey-step-label">{step > 0 && step < days && (days <= 10 || step % Math.ceil(days / 6) === 0) ? step : ''}</span></li>)}

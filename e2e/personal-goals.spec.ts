@@ -94,3 +94,37 @@ for (const width of [390, 1440]) {
   await expect(page.getByRole('heading',{level:1})).toHaveText('운동 타이머');
  });
 }
+
+test('timer survives refresh and navigation and finishes while goal screen is open', async ({page})=>{
+ await page.clock.install();
+ await page.goto('/?device=1#/timer');
+ await page.getByRole('button',{name:'시작',exact:true}).click();
+ await page.clock.fastForward(10000);
+ await page.reload();
+ await expect(page.getByRole('timer')).toHaveText('01:20');
+ await page.getByRole('link',{name:'나의 목표 보드',exact:true}).click();
+ await page.clock.fastForward(80000);
+ await page.getByRole('link',{name:'운동 타이머',exact:true}).click();
+ await expect(page.getByText('휴식 끝! 준비됐다면 다음 세트를 시작하세요.')).toBeVisible();
+ await page.reload();
+ await expect(page.getByRole('timer')).toHaveText('00:00');
+});
+test('short completion chime and permitted system notification fire once', async ({page})=>{
+ await page.addInitScript(()=>{
+  (window as any).alarmEvents={tones:0,notifications:0};
+  (window as any).AudioContext=class {
+   state='running';currentTime=0;destination={};resume(){return Promise.resolve();}
+   createOscillator(){return {frequency:{setValueAtTime(){}},connect(){return {connect(){}}},start(){(window as any).alarmEvents.tones++;},stop(){}};}
+   createGain(){return {gain:{setValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){}};}
+  };
+  (window as any).Notification=class {static permission='granted';constructor(){(window as any).alarmEvents.notifications++;}};
+ });
+ await page.clock.install();
+ await page.goto('/?device=1#/timer');
+ await page.getByRole('button',{name:'시작',exact:true}).click();
+ await page.getByRole('link',{name:'나의 목표 보드',exact:true}).click();
+ await page.clock.fastForward(90000);
+ await expect.poll(()=>page.evaluate(()=>(window as any).alarmEvents)).toEqual({tones:4,notifications:1});
+ await page.clock.fastForward(10000);
+ expect(await page.evaluate(()=>(window as any).alarmEvents)).toEqual({tones:4,notifications:1});
+});
