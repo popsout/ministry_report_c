@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Timer } from 'lucide-react';
 const KEY = 'chagok.rest-timer.v1';
 type TimerState = { duration: number; remaining: number; deadline: number | null; done: boolean };
@@ -11,16 +12,40 @@ export default function RestTimer() {
  const [state,setState]=useState(read), [now,setNow]=useState(Date.now), [notice,setNotice]=useState('');
  const [permission,setPermission]=useState(()=>typeof Notification==='undefined'?'unsupported':Notification.permission);
  const audio=useRef<AudioContext|null>(null);
+ const alarmGain=useRef<GainNode|null>(null), alarmVoices=useRef<OscillatorNode[]>([]), alarmTimeout=useRef<number|undefined>(undefined);
+ const [ringing,setRinging]=useState(false);
  const {duration,deadline,done}=state, running=deadline!==null;
  const remaining=running?Math.max(0,deadline-now):state.remaining;
  function save(next:TimerState){try{localStorage.setItem(KEY,JSON.stringify(next));}catch{setNotice('브라우저 저장이 차단되어 새로고침 후 복원할 수 없습니다.');}setState(next);setNow(Date.now());}
  function unlock(){try{audio.current??=new AudioContext();void audio.current.resume().catch(()=>{});}catch{}}
- function beep(){try{const ctx=audio.current;if(!ctx || ctx.state!=='running')return;for(let i=0;i<4;i++){const osc=ctx.createOscillator(),gain=ctx.createGain(),t=ctx.currentTime+i*.4;osc.frequency.setValueAtTime(i%2===0?1046:1318,t);gain.gain.setValueAtTime(.15,t);gain.gain.exponentialRampToValueAtTime(.001,t+.25);osc.connect(gain).connect(ctx.destination);osc.start(t);osc.stop(t+.3);}}catch{}}
+ function stopAlarm(){
+  clearTimeout(alarmTimeout.current);alarmTimeout.current=undefined;
+  try{alarmGain.current?.disconnect();}catch{}alarmGain.current=null;
+  for(const voice of alarmVoices.current){try{voice.stop();voice.disconnect();}catch{}}
+  alarmVoices.current=[];setRinging(false);
+ }
+ function beep(){
+  stopAlarm();
+  try{
+   const ctx=audio.current;if(!ctx || ctx.state!=='running')return;
+   const master=ctx.createGain();master.connect(ctx.destination);alarmGain.current=master;
+   // Schedule the entire 30-second chime on the audio clock, independent of JS intervals.
+   for(let i=0;i<60;i++){
+    const osc=ctx.createOscillator(),gain=ctx.createGain(),t=ctx.currentTime+i*.5;
+    osc.frequency.setValueAtTime(i%2===0?1046:1318,t);
+    gain.gain.setValueAtTime(.15,t);gain.gain.exponentialRampToValueAtTime(.001,t+.35);
+    osc.connect(gain);gain.connect(master);osc.start(t);osc.stop(t+.4);alarmVoices.current.push(osc);
+   }
+   setRinging(true);alarmTimeout.current=window.setTimeout(stopAlarm,30000);
+  }catch{stopAlarm();setNotice('완료 소리를 재생하지 못했습니다. 기기의 소리 설정을 확인해 주세요.');}
+ }
+ useEffect(()=>()=>stopAlarm(),[]);
+ useEffect(()=>{if(!done || running)stopAlarm();},[done,running]);
  async function notify(){
   if(typeof Notification==='undefined' || Notification.permission!=='granted')return;
   try{const registration='serviceWorker' in navigator?await navigator.serviceWorker.getRegistration():undefined;
-   if(registration)await registration.showNotification('차곡 · 휴식 끝!',{body:'다음 세트를 시작할 시간이에요.',tag:'chagok-rest',icon:new URL('icons/chagok-192.png',document.baseURI).href});
-   else new Notification('차곡 · 휴식 끝!',{body:'다음 세트를 시작할 시간이에요.',tag:'chagok-rest'});
+   if(registration)await registration.showNotification('차곡 · 휴식 끝!',{body:'다음 세트를 시작할 시간이에요.',tag:'chagok-rest',requireInteraction:true,icon:new URL('icons/chagok-192.png',document.baseURI).href});
+   else new Notification('차곡 · 휴식 끝!',{body:'다음 세트를 시작할 시간이에요.',tag:'chagok-rest',requireInteraction:true});
   }catch{setNotice('이 브라우저에서 시스템 알림을 표시하지 못했습니다. 화면에서 완료를 확인해 주세요.');}
  }
  useEffect(()=>{
@@ -44,7 +69,7 @@ export default function RestTimer() {
  },[deadline]);
  function choose(seconds:number){save({duration:seconds,remaining:seconds*1000,deadline:null,done:false});}
  const seconds=Math.ceil(remaining/1000);
- return <section className={`panel rest-timer ${done?'timer-done':''}`} aria-label="운동 휴식 타이머"><Timer size={26}/><span className="goal-eyebrow">TAKE A BREATH</span><h2>운동 휴식 타이머</h2><p>잠깐 숨을 고르고, 다음 세트를 준비하세요.</p><div className="timer-presets" role="group" aria-label="휴식 시간">{[90,120,180].map(value=><button key={value} aria-pressed={duration===value} onClick={()=>choose(value)}>{value===90?'90초':`${value/60}분`}</button>)}</div><div className="timer-digits" role="timer" aria-label="남은 휴식 시간">{String(Math.floor(seconds/60)).padStart(2,'0')}:{String(seconds%60).padStart(2,'0')}</div><p role="status">{done?'휴식 끝! 준비됐다면 다음 세트를 시작하세요.':running?'휴식 중이에요.':'준비되면 시작하세요.'}</p><div className="timer-actions"><button className="primary" onClick={()=>{unlock();if(running)save({...state,deadline:null,remaining:Math.max(0,deadline-Date.now())});else {const next=remaining>0?remaining:duration*1000;save({...state,remaining:next,deadline:Date.now()+next,done:false});}}}>{running?'일시정지':remaining<duration*1000&&remaining>0?'계속':'시작'}</button><button className="text-button" onClick={()=>choose(duration)}>초기화</button></div>
+ return <><section className={`panel rest-timer ${done?'timer-done':''}`} aria-label="운동 휴식 타이머"><Timer size={26}/><span className="goal-eyebrow">TAKE A BREATH</span><h2>운동 휴식 타이머</h2><p>잠깐 숨을 고르고, 다음 세트를 준비하세요.</p><div className="timer-presets" role="group" aria-label="휴식 시간">{[90,120,180].map(value=><button key={value} aria-pressed={duration===value} onClick={()=>choose(value)}>{value===90?'90초':`${value/60}분`}</button>)}</div><div className="timer-digits" role="timer" aria-label="남은 휴식 시간">{String(Math.floor(seconds/60)).padStart(2,'0')}:{String(seconds%60).padStart(2,'0')}</div><p role="status">{done?'휴식 끝! 준비됐다면 다음 세트를 시작하세요.':running?'휴식 중이에요.':'준비되면 시작하세요.'}</p><div className="timer-actions"><button className="primary" onClick={()=>{stopAlarm();unlock();if(running)save({...state,deadline:null,remaining:Math.max(0,deadline-Date.now())});else {const next=remaining>0?remaining:duration*1000;save({...state,remaining:next,deadline:Date.now()+next,done:false});}}}>{running?'일시정지':remaining<duration*1000&&remaining>0?'계속':'시작'}</button><button className="text-button" onClick={()=>choose(duration)}>초기화</button></div>
  <button className="text-button" disabled={permission==='unsupported'||permission==='granted'} onClick={async()=>{unlock();try{const result=await Notification.requestPermission();setPermission(result);if(result==='denied')setNotice('브라우저 또는 휴대폰 설정에서 차곡의 알림을 허용해 주세요.');}catch{setNotice('이 브라우저에서 알림 권한을 요청할 수 없습니다.');}}}>{permission==='granted'?'완료 알림 허용됨':permission==='unsupported'?'이 브라우저는 시스템 알림을 지원하지 않습니다':'완료 알림 켜기'}</button>
- <p className="timer-help">화면 이동·새로고침 후에도 타이머가 유지됩니다. 시작 버튼을 누르면 완료 소리를 준비합니다.</p><small>카톡 사용·화면 잠금 중에도 종료 시각은 유지됩니다. 다만 휴대폰이 브라우저 실행을 멈추면 소리·알림은 복귀 후 울릴 수 있습니다. 앱을 완전히 종료한 상태의 정시 알람은 지원하지 않습니다.</small>{notice&&<p role="status">{notice}</p>}</section>;
+ <p className="timer-help">화면 이동·새로고침 후에도 타이머가 유지됩니다. 완료음은 최대 30초 반복됩니다. ‘알람 끄기’를 누르면 바로 멈춥니다. 시작 전에 기기 음량을 확인해 주세요.</p><small>카톡 사용·화면 잠금 중에도 종료 시각은 유지됩니다. 다만 휴대폰이 브라우저 실행을 멈추면 소리·알림은 복귀 후 울릴 수 있습니다. 앱을 완전히 종료한 상태의 정시 알람은 지원하지 않습니다. 다른 앱의 음악을 강제로 멈추거나 음량을 낮추는 기능은 웹에서 지원하지 않습니다.</small>{notice&&<p role="status">{notice}</p>}</section>{ringing && createPortal(<div className="timer-alarm-banner" role="alert"><div><strong>휴식 끝! 알람 재생 중</strong><span>최대 30초 반복됩니다.</span></div><button className="primary" onClick={stopAlarm}>알람 끄기</button></div>,document.body)}</>;
 }

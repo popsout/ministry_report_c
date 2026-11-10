@@ -109,13 +109,13 @@ test('timer survives refresh and navigation and finishes while goal screen is op
  await page.reload();
  await expect(page.getByRole('timer')).toHaveText('00:00');
 });
-test('short completion chime and permitted system notification fire once', async ({page})=>{
+test('30-second alarm supports global dismissal and automatic stop without duplicate notifications', async ({page})=>{
  await page.addInitScript(()=>{
-  (window as any).alarmEvents={tones:0,notifications:0};
+  (window as any).alarmEvents={tones:0,notifications:0,cancelled:0};
   (window as any).AudioContext=class {
    state='running';currentTime=0;destination={};resume(){return Promise.resolve();}
-   createOscillator(){return {frequency:{setValueAtTime(){}},connect(){return {connect(){}}},start(){(window as any).alarmEvents.tones++;},stop(){}};}
-   createGain(){return {gain:{setValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){}};}
+   createOscillator(){return {frequency:{setValueAtTime(){}},connect(){return {connect(){}}},start(){(window as any).alarmEvents.tones++;},stop(when?:number){if(when===undefined)(window as any).alarmEvents.cancelled++;},disconnect(){}};}
+   createGain(){return {gain:{setValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){},disconnect(){}};}
   };
   (window as any).Notification=class {static permission='granted';constructor(){(window as any).alarmEvents.notifications++;}};
  });
@@ -124,7 +124,17 @@ test('short completion chime and permitted system notification fire once', async
  await page.getByRole('button',{name:'시작',exact:true}).click();
  await page.getByRole('link',{name:'나의 목표 보드',exact:true}).click();
  await page.clock.fastForward(90000);
- await expect.poll(()=>page.evaluate(()=>(window as any).alarmEvents)).toEqual({tones:4,notifications:1});
+ await expect.poll(()=>page.evaluate(()=>(window as any).alarmEvents)).toEqual({tones:60,notifications:1,cancelled:0});
  await page.clock.fastForward(10000);
- expect(await page.evaluate(()=>(window as any).alarmEvents)).toEqual({tones:4,notifications:1});
+ expect(await page.evaluate(()=>(window as any).alarmEvents)).toEqual({tones:60,notifications:1,cancelled:0});
+ await page.getByRole('button',{name:'알람 끄기'}).click();
+ await expect(page.locator('.timer-alarm-banner')).toHaveCount(0);
+ expect(await page.evaluate(()=>(window as any).alarmEvents.cancelled)).toBe(60);
+ await page.getByRole('link',{name:'운동 타이머',exact:true}).click();
+ await page.getByRole('button',{name:'시작',exact:true}).click();
+ await page.clock.fastForward(90000);
+ await expect(page.getByRole('button',{name:'알람 끄기'})).toBeVisible();
+ await page.clock.fastForward(30000);
+ await expect(page.locator('.timer-alarm-banner')).toHaveCount(0);
+ expect(await page.evaluate(()=>(window as any).alarmEvents)).toEqual({tones:120,notifications:2,cancelled:120});
 });
