@@ -8,7 +8,7 @@ describe('weekly weight records',()=>{
   expect(weightWeek('2026-01-05')).toBe('2026-01-05');
  });
  it('replaces the same week and compares consecutive measurements across missing weeks',()=>{
-  const weights={'2026-01-05':{date:'2026-01-05',kg:90},'2026-01-19':{date:'2026-01-19',kg:88.7}};
+  const weights: Record<string,{date:string;kg:number}>={'2026-01-05':{date:'2026-01-05',kg:90},'2026-01-19':{date:'2026-01-19',kg:88.7}};
   weights[weightWeek('2026-01-11')]={date:'2026-01-11',kg:89.5};
   const rows=weightTrend(weights);expect(rows).toHaveLength(2);
   expect(rows[0]).toMatchObject({kg:89.5,change:null,total:0});
