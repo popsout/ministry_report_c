@@ -7,7 +7,7 @@ test('마우스를 올려 안내를 읽고 클릭으로 고정한 뒤 바깥에�
  await page.getByRole('heading',{level:1}).click();await expect(panel).not.toBeVisible();
 });
 test('키보드로 안내를 열고 Esc로 닫는다',async({page})=>{
- await page.goto('/');const button=page.getByRole('button',{name:'개인정보와 열람 권한 안내'});
+ await page.goto('/#calendar');const button=page.getByRole('button',{name:'개인정보와 열람 권한 안내'});
  await button.focus();await expect(button).toHaveAttribute('aria-expanded','true');await page.keyboard.press('Escape');await expect(button).toHaveAttribute('aria-expanded','false');
  await page.keyboard.press('Enter');await expect(button).toHaveAttribute('aria-expanded','true');
 });

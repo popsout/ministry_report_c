@@ -2,7 +2,7 @@ import { openSelectedDay } from './helpers';
 import { test,expect } from '@playwright/test';
 async function seed(page:import('@playwright/test').Page){
  await page.clock.setFixedTime(new Date(2026,10,3,12));
- await page.goto('/');
+ await page.goto('/#calendar');
  await page.evaluate(()=>localStorage.setItem('chagok.journal.v1',JSON.stringify({version:1,entries:[
   ['a','2026-11-03',60],['b','2026-11-03',30],['c','2026-11-04',120],['d','2026-12-03',180],['e','2025-11-03',240],
  ].map(([id,service_date,minutes])=>({id,service_date,minutes,user_id:'local',service_type:'호별',note:String(id),updated_at:'initial'})),settings:[{month:'2026-11-01',role:'정규 파이오니아',updated_at:'initial'}]})));

@@ -28,7 +28,7 @@ test.describe('온라인 저장 - 모의 서버',()=>{
    });
   }
   async function login(page:Page){
-   await page.goto('http://127.0.0.1:5174/?cloud=1');
+   await page.goto('http://127.0.0.1:5174/?cloud=1#calendar');
    await expect(page.locator('.sync')).toContainText('로그인 필요');
    await expect(page.locator('.sync .status-dot')).not.toHaveClass(/online/);
    await page.getByRole('button',{name:'로그인',exact:true}).click();
