@@ -25,7 +25,7 @@ test('separate devices sync goals, preserve service data, reject stale writes, m
   const d=page.getByRole('dialog');await d.locator('input[name=email]').fill(user.email);await d.locator('input[name=password]').fill('test-password');
   await d.getByRole('button',{name:'로그인',exact:true}).click();
   await expect(page.getByRole('button',{name:'목표 설정 저장'})).toBeEnabled();
-  await expect(page.locator('.connection-banner')).toContainText('목표와 날짜별 평가를 공유');
+  await expect(page.locator('.connection-banner')).toContainText('목표·식단 평가·주간 체중을 공유');
  }
  const a=await browser.newContext(),b=await browser.newContext();
  try{
@@ -35,12 +35,17 @@ test('separate devices sync goals, preserve service data, reject stale writes, m
   await expect(pc.getByTestId('goal-position')).toHaveText('0 / 60칸');
   await pc.getByLabel('평가 날짜').fill('2026-01-01');await pc.getByRole('button',{name:'＋ 잘 지켰어요'}).click();
   await expect(pc.getByTestId('goal-position')).toHaveText('1 / 60칸');
+  await pc.getByLabel('측정 날짜').fill('2026-01-05');await pc.getByLabel('체중 (kg)').fill('90');await pc.getByRole('button',{name:'체중 저장',exact:true}).click();
+  await expect(pc.getByRole('table')).toContainText('90.0 kg');
   failSave=true;
   await pc.getByLabel('평가 날짜').fill('2026-01-03');await pc.getByRole('button',{name:'＋ 잘 지켰어요'}).click();
   await expect(pc.getByRole('alert')).toContainText('온라인 저장에 실패');
   expect(row.document.goals.ratings['2026-01-03']).toBeUndefined();failSave=false;
   expect(row.document.entries).toEqual([entry]);expect(row.document.future).toEqual({preserve:true});
   await phone.getByRole('button',{name:'온라인 목표 새로고침'}).click();await expect(phone.getByTestId('goal-position')).toHaveText('1 / 60칸');
+  await expect(phone.getByRole('table')).toContainText('90.0 kg');
+  await phone.getByLabel('측정 날짜').fill('2026-01-11');await phone.getByLabel('체중 (kg)').fill('89.5');await phone.getByRole('button',{name:'이번 주 체중 수정'}).click();
+  await expect(phone.getByRole('table')).toContainText('89.5 kg');
   await phone.getByLabel('평가 날짜').fill('2026-01-01');await phone.getByRole('button',{name:'스테이 유지했어요'}).click();await expect(phone.getByTestId('goal-position')).toHaveText('0 / 60칸');
   await pc.getByLabel('평가 날짜').fill('2026-01-02');await pc.getByRole('button',{name:'＋ 잘 지켰어요'}).click();
   await expect(pc.getByRole('alert')).toContainText('다른 기기');
@@ -50,6 +55,7 @@ test('separate devices sync goals, preserve service data, reject stale writes, m
   await pc.evaluate(value=>localStorage.setItem('chagok.goals.v1',value),local);
   await pc.getByRole('button',{name:'이 기기의 이전 목표 기록 가져오기'}).click();
   await expect(pc.getByTestId('goal-position')).toHaveText('1 / 60칸');
+  expect(row.document.goals.weights['2026-01-05']).toEqual({date:'2026-01-11',kg:89.5});
   expect(row.document.goals.ratings).toEqual({'2026-01-01':0,'2026-01-02':1});
   expect(await pc.evaluate(()=>localStorage.getItem('chagok.goals.v1'))).toBe(local);
   // Editing a service entry must retain the whole goal document.

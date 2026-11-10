@@ -138,3 +138,26 @@ test('30-second alarm supports global dismissal and automatic stop without dupli
  await expect(page.locator('.timer-alarm-banner')).toHaveCount(0);
  expect(await page.evaluate(()=>(window as any).alarmEvents)).toEqual({tones:120,notifications:2,cancelled:120});
 });
+test('weekly weight replacement, skipped weeks, trend table, persistence and mobile layout',async({page})=>{
+ await page.setViewportSize({width:390,height:900});
+ await page.goto('/?device=1');
+ const panel=page.getByRole('region',{name:'주간 체중 기록'});
+ async function weigh(date:string,kg:string){
+  await panel.getByLabel('측정 날짜').fill(date);await panel.getByLabel('체중 (kg)').fill(kg);
+  await panel.getByRole('button',{name:/체중 저장|이번 주 체중 수정/}).click();
+ }
+ await weigh('2026-01-05','90');
+ await weigh('2026-01-11','89.5');
+ await expect(panel.locator('tbody tr')).toHaveCount(1);
+ await expect(panel.locator('tbody')).toContainText('89.5 kg');
+ await weigh('2026-01-19','88.5');
+ await expect(panel.locator('tbody tr')).toHaveCount(2);
+ await expect(panel.locator('tbody tr').first()).toContainText('−1.0 kg');
+ await weigh('2026-01-06','90.5');
+ await expect(panel.locator('tbody tr').first()).toContainText('−2.0 kg');
+ await page.reload();
+ await expect(panel.locator('tbody tr')).toHaveCount(2);
+ await expect(panel.locator('tbody')).toContainText('90.5 kg');
+ await expect(page.getByTestId('goal-position')).toHaveText('0 / 30칸');
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
