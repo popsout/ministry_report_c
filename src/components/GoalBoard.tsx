@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Flag, Timer, Target } from 'lucide-react';
+import { Target } from 'lucide-react';
 import { boardProgress, emptyBoard, GOAL_KEY, parseBoard, type GoalBoard as Board, type Rating } from '../lib/goalBoard';
 import { dateKey } from '../lib/domain';
+import JourneyScene from './JourneyScene';
 
 export default function GoalBoard({ storageKey = GOAL_KEY, preview = false }: { storageKey?: string; preview?: boolean }) {
   const [board, setBoard] = useState<Board>(emptyBoard);
@@ -46,25 +47,13 @@ export default function GoalBoard({ storageKey = GOAL_KEY, preview = false }: { 
     <section className="panel goal-settings"><form onSubmit={settings} key={storageKey + String(ready) + board.title + board.days}><label>목표 이름<input name="title" maxLength={80} required defaultValue={board.title} /></label><label>수행일 수<input name="days" type="number" min={1} max={365} required defaultValue={board.days} /></label><button className="primary" disabled={!ready}>목표 설정 저장</button></form><small>1~365칸 · 목표를 바꿔도 날짜별 평가는 유지됩니다.</small></section>
     <section className="panel journey-panel" aria-label="목표 진행 보드"><div className="journey-heading"><div><span className="goal-eyebrow">MY JOURNEY</span><h2>{board.title}</h2></div><strong data-testid="goal-position">{position} / {board.days}칸</strong></div>
       <div className="journey-status" role="status">{position === board.days ? '목표 도착! 꾸준한 선택이 결실을 맺었어요.' : `목표까지 ${board.days - position}칸 · ${count}일 평가`}</div>
-      <ol className="journey-cells" aria-label="START부터 목표까지">{Array.from({ length: board.days + 1 }, (_, step) => <li key={step} className={`${step < position ? 'passed' : ''} ${step === position ? 'current' : ''}`} aria-current={step === position ? 'step' : undefined}><span className="flag-character">{step === position ? <><Flag size={24} fill="currentColor"/><span className="flag-face">●‿●</span></> : step === board.days ? '🏁' : step === 0 ? '○' : '·'}</span><span>{step === 0 ? 'START' : step === board.days ? `GOAL ${step}` : step}</span></li>)}</ol>
+      <JourneyScene days={board.days} position={position} />
       <p className="journey-rule">＋ 오른쪽 1칸 · 스테이 유지 · － 왼쪽 1칸<br/>START 아래로 내려가지 않으며 목표를 넘지 않습니다.</p>
     </section>
     <div className="goal-tools"><section className="panel rating-panel"><span className="goal-eyebrow">DAILY CHECK-IN</span><h2>하루 식단 평가</h2><label>평가 날짜<input type="date" value={date} max={dateKey(new Date())} onChange={e => { setDate(e.target.value); setMessage(''); }} /></label><div className="rating-buttons" role="group" aria-label="식단 평가">{([[1, '＋', '잘 지켰어요'], [0, '스테이', '유지했어요'], [-1, '－', '아쉬웠어요']] as const).map(([value, label, detail]) => <button key={value} disabled={!ready} aria-pressed={board.ratings[date] === value} onClick={() => rate(value)}><strong>{label}</strong><small>{detail}</small></button>)}</div><p>날짜마다 한 번 반영됩니다. 다시 선택하면 평가를 수정하고 진행 위치를 다시 계산합니다.</p>
       {failures > 0 && <div className={`failure-notice ${failures >= 3 ? 'firm' : ''}`} role="status"><strong>－ 평가 누적 {failures}일</strong><p>{failures >= 3 ? '여기서 흐름을 끊으세요. 다음 한 끼부터 정한 계획을 실천하세요. 다시 시작할 힘은 있습니다.' : '아쉬운 하루를 그냥 넘기지 마세요. 다음 한 끼는 계획대로, 다시 한 칸을 향해 가세요.'}</p></div>}
       {error && <p className="notice" role="alert">{error}</p>}{message && <p role="status">{message}</p>}
       <details className="rating-history"><summary>평가 기록 ({count}일)</summary>{Object.entries(board.ratings).sort(([a], [b]) => b.localeCompare(a)).map(([day, rating]) => <button key={day} onClick={() => { setDate(day); setMessage('날짜를 선택했습니다. 위에서 평가를 수정하세요.'); }}>{day}<span>{rating === 1 ? '＋' : rating === 0 ? '스테이' : '－'}</span></button>)}</details>
-    </section><RestTimer /></div>
+    </section></div>
   </div>;
-}
-function RestTimer() {
-  const [duration, setDuration] = useState(90), [remaining, setRemaining] = useState(90000), [running, setRunning] = useState(false), [done, setDone] = useState(false);
-  const deadline = useRef(0);
-  useEffect(() => {
-    if (!running) return;
-    const tick = () => { const next = Math.max(0, deadline.current - Date.now()); setRemaining(next); if (!next) { setRunning(false); setDone(true); } };
-    tick(); const timer = window.setInterval(tick, 200); return () => clearInterval(timer);
-  }, [running]);
-  function choose(seconds: number) { setDuration(seconds); setRemaining(seconds * 1000); setRunning(false); setDone(false); }
-  const seconds = Math.ceil(remaining / 1000);
-  return <section className={`panel rest-timer ${done ? 'timer-done' : ''}`} aria-label="운동 휴식 타이머"><Timer size={26}/><span className="goal-eyebrow">TAKE A BREATH</span><h2>운동 휴식 타이머</h2><p>잠깐 숨을 고르고, 다음 세트를 준비하세요.</p><div className="timer-presets" role="group" aria-label="휴식 시간">{[90, 120, 180].map(value => <button key={value} aria-pressed={duration === value} onClick={() => choose(value)}>{value === 90 ? '90초' : `${value / 60}분`}</button>)}</div><div className="timer-digits" role="timer" aria-label="남은 휴식 시간">{String(Math.floor(seconds / 60)).padStart(2, '0')}:{String(seconds % 60).padStart(2, '0')}</div><p role="status">{done ? '휴식 끝! 준비됐다면 다음 세트를 시작하세요.' : running ? '휴식 중이에요.' : '준비되면 시작하세요.'}</p><div className="timer-actions"><button className="primary" onClick={() => { if (running) { setRemaining(Math.max(0, deadline.current - Date.now())); setRunning(false); } else { const next = remaining > 0 ? remaining : duration * 1000; setRemaining(next); deadline.current = Date.now() + next; setDone(false); setRunning(true); } }}>{running ? '일시정지' : remaining < duration * 1000 && remaining > 0 ? '계속' : '시작'}</button><button className="text-button" onClick={() => choose(duration)}>초기화</button></div><small>화면을 이동하거나 새로고침하면 타이머가 초기화됩니다.</small></section>;
 }
