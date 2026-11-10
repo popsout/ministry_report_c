@@ -3,11 +3,13 @@ import { Target } from 'lucide-react';
 import { boardProgress, emptyBoard, GOAL_KEY, parseBoard, type GoalBoard as Board, type Rating } from '../lib/goalBoard';
 import { dateKey } from '../lib/domain';
 import JourneyScene from './JourneyScene';
+import { encouragementPool } from '../lib/encouragement';
 
 export default function GoalBoard({ storageKey = GOAL_KEY, preview = false }: { storageKey?: string; preview?: boolean }) {
   const [board, setBoard] = useState<Board>(emptyBoard);
   const [ready, setReady] = useState(false), [error, setError] = useState(''), [message, setMessage] = useState('');
   const [date, setDate] = useState(() => dateKey(new Date()));
+  const [encouragementIndex, setEncouragementIndex] = useState(0);
   const raw = useRef<string | null>(null);
   const blocked = useRef(false);
   useEffect(() => {
@@ -41,6 +43,8 @@ export default function GoalBoard({ storageKey = GOAL_KEY, preview = false }: { 
     save({ ...board, ratings: { ...board.ratings, [date]: rating } }, `${date} 평가를 ${Object.hasOwn(board.ratings, date) ? '수정' : '저장'}했습니다.`);
   }
   const { position, failures, count } = boardProgress(board);
+  const messages = encouragementPool(board.ratings[date], position === board.days);
+  const encouragementText = messages[(Number(date.replaceAll('-', '')) + count + position + encouragementIndex) % messages.length];
   return <div className="personal-goals">
     <div className="page-title"><div><span className="goal-eyebrow">ONE DAY, ONE STEP</span><h1>나의 목표 보드</h1><p>오늘의 선택을 기록하고, 나만의 깃발을 앞으로.</p></div><Target size={34} /></div>
     <p className="connection-banner">{preview ? '예시 화면 · 연습한 목표는 저장되지 않습니다.' : '목표는 이 브라우저에 저장됩니다. 온라인 봉사 기록과 별도이며 다른 기기와 동기화되지 않습니다.'}</p>
@@ -50,8 +54,9 @@ export default function GoalBoard({ storageKey = GOAL_KEY, preview = false }: { 
       <JourneyScene days={board.days} position={position} />
       <p className="journey-rule">＋ 오른쪽 1칸 · 스테이 유지 · － 왼쪽 1칸<br/>START 아래로 내려가지 않으며 목표를 넘지 않습니다.</p>
     </section>
+    <section className="panel encouragement-card" aria-label="오늘의 격려"><div><span className="goal-eyebrow">CONFIDENCE, ONE STEP AT A TIME</span><h2>오늘도, 더 멋진 나를 향해</h2><p aria-live="polite">{encouragementText}</p></div><button className="text-button" onClick={()=>setEncouragementIndex(index=>index+1)}>다른 격려 보기 →</button></section>
     <div className="goal-tools"><section className="panel rating-panel"><span className="goal-eyebrow">DAILY CHECK-IN</span><h2>하루 식단 평가</h2><label>평가 날짜<input type="date" value={date} max={dateKey(new Date())} onChange={e => { setDate(e.target.value); setMessage(''); }} /></label><div className="rating-buttons" role="group" aria-label="식단 평가">{([[-1, '－', '아쉬웠어요'], [0, '스테이', '유지했어요'], [1, '＋', '잘 지켰어요']] as const).map(([value, label, detail]) => <button key={value} disabled={!ready} aria-pressed={board.ratings[date] === value} onClick={() => rate(value)}><strong>{label}</strong><small>{detail}</small></button>)}</div><p>날짜마다 한 번 반영됩니다. 다시 선택하면 평가를 수정하고 진행 위치를 다시 계산합니다.</p>
-      {failures > 0 && <div className={`failure-notice ${failures >= 3 ? 'firm' : ''}`} role="status"><strong>－ 평가 누적 {failures}일</strong><p>{failures >= 3 ? '여기서 흐름을 끊으세요. 다음 한 끼부터 정한 계획을 실천하세요. 다시 시작할 힘은 있습니다.' : '아쉬운 하루를 그냥 넘기지 마세요. 다음 한 끼는 계획대로, 다시 한 칸을 향해 가세요.'}</p></div>}
+      {failures > 0 && <div className={`failure-notice ${failures >= 3 ? 'firm' : ''}`} role="status"><strong>－ 평가 누적 {failures}일</strong><p>{board.ratings[date] === -1 ? encouragementText : '지난 기록에 머물지 말고 다음 한 끼부터 계획을 이어가세요. 다시 실천하는 모습이 멋집니다.'}</p></div>}
       {error && <p className="notice" role="alert">{error}</p>}{message && <p role="status">{message}</p>}
       <details className="rating-history"><summary>평가 기록 ({count}일)</summary>{Object.entries(board.ratings).sort(([a], [b]) => b.localeCompare(a)).map(([day, rating]) => <button key={day} onClick={() => { setDate(day); setMessage('날짜를 선택했습니다. 위에서 평가를 수정하세요.'); }}>{day}<span>{rating === 1 ? '＋' : rating === 0 ? '스테이' : '－'}</span></button>)}</details>
     </section></div>
